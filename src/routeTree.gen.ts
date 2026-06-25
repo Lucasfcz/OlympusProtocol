@@ -9,38 +9,177 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TreinoRouteImport } from './routes/treino'
+import { Route as SerieRouteImport } from './routes/serie'
+import { Route as ConquistasRouteImport } from './routes/conquistas'
+import { Route as TabsRouteImport } from './routes/_tabs'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TabsTreinosRouteImport } from './routes/_tabs.treinos'
+import { Route as TabsSocialRouteImport } from './routes/_tabs.social'
+import { Route as TabsPerfilRouteImport } from './routes/_tabs.perfil'
+import { Route as TabsHomeRouteImport } from './routes/_tabs.home'
+import { Route as TabsEvolucaoRouteImport } from './routes/_tabs.evolucao'
 
+const TreinoRoute = TreinoRouteImport.update({
+  id: '/treino',
+  path: '/treino',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SerieRoute = SerieRouteImport.update({
+  id: '/serie',
+  path: '/serie',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConquistasRoute = ConquistasRouteImport.update({
+  id: '/conquistas',
+  path: '/conquistas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TabsRoute = TabsRouteImport.update({
+  id: '/_tabs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TabsTreinosRoute = TabsTreinosRouteImport.update({
+  id: '/treinos',
+  path: '/treinos',
+  getParentRoute: () => TabsRoute,
+} as any)
+const TabsSocialRoute = TabsSocialRouteImport.update({
+  id: '/social',
+  path: '/social',
+  getParentRoute: () => TabsRoute,
+} as any)
+const TabsPerfilRoute = TabsPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => TabsRoute,
+} as any)
+const TabsHomeRoute = TabsHomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => TabsRoute,
+} as any)
+const TabsEvolucaoRoute = TabsEvolucaoRouteImport.update({
+  id: '/evolucao',
+  path: '/evolucao',
+  getParentRoute: () => TabsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/conquistas': typeof ConquistasRoute
+  '/serie': typeof SerieRoute
+  '/treino': typeof TreinoRoute
+  '/evolucao': typeof TabsEvolucaoRoute
+  '/home': typeof TabsHomeRoute
+  '/perfil': typeof TabsPerfilRoute
+  '/social': typeof TabsSocialRoute
+  '/treinos': typeof TabsTreinosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/conquistas': typeof ConquistasRoute
+  '/serie': typeof SerieRoute
+  '/treino': typeof TreinoRoute
+  '/evolucao': typeof TabsEvolucaoRoute
+  '/home': typeof TabsHomeRoute
+  '/perfil': typeof TabsPerfilRoute
+  '/social': typeof TabsSocialRoute
+  '/treinos': typeof TabsTreinosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_tabs': typeof TabsRouteWithChildren
+  '/conquistas': typeof ConquistasRoute
+  '/serie': typeof SerieRoute
+  '/treino': typeof TreinoRoute
+  '/_tabs/evolucao': typeof TabsEvolucaoRoute
+  '/_tabs/home': typeof TabsHomeRoute
+  '/_tabs/perfil': typeof TabsPerfilRoute
+  '/_tabs/social': typeof TabsSocialRoute
+  '/_tabs/treinos': typeof TabsTreinosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/conquistas'
+    | '/serie'
+    | '/treino'
+    | '/evolucao'
+    | '/home'
+    | '/perfil'
+    | '/social'
+    | '/treinos'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/conquistas'
+    | '/serie'
+    | '/treino'
+    | '/evolucao'
+    | '/home'
+    | '/perfil'
+    | '/social'
+    | '/treinos'
+  id:
+    | '__root__'
+    | '/'
+    | '/_tabs'
+    | '/conquistas'
+    | '/serie'
+    | '/treino'
+    | '/_tabs/evolucao'
+    | '/_tabs/home'
+    | '/_tabs/perfil'
+    | '/_tabs/social'
+    | '/_tabs/treinos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  TabsRoute: typeof TabsRouteWithChildren
+  ConquistasRoute: typeof ConquistasRoute
+  SerieRoute: typeof SerieRoute
+  TreinoRoute: typeof TreinoRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/treino': {
+      id: '/treino'
+      path: '/treino'
+      fullPath: '/treino'
+      preLoaderRoute: typeof TreinoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/serie': {
+      id: '/serie'
+      path: '/serie'
+      fullPath: '/serie'
+      preLoaderRoute: typeof SerieRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/conquistas': {
+      id: '/conquistas'
+      path: '/conquistas'
+      fullPath: '/conquistas'
+      preLoaderRoute: typeof ConquistasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_tabs': {
+      id: '/_tabs'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof TabsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +187,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_tabs/treinos': {
+      id: '/_tabs/treinos'
+      path: '/treinos'
+      fullPath: '/treinos'
+      preLoaderRoute: typeof TabsTreinosRouteImport
+      parentRoute: typeof TabsRoute
+    }
+    '/_tabs/social': {
+      id: '/_tabs/social'
+      path: '/social'
+      fullPath: '/social'
+      preLoaderRoute: typeof TabsSocialRouteImport
+      parentRoute: typeof TabsRoute
+    }
+    '/_tabs/perfil': {
+      id: '/_tabs/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof TabsPerfilRouteImport
+      parentRoute: typeof TabsRoute
+    }
+    '/_tabs/home': {
+      id: '/_tabs/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof TabsHomeRouteImport
+      parentRoute: typeof TabsRoute
+    }
+    '/_tabs/evolucao': {
+      id: '/_tabs/evolucao'
+      path: '/evolucao'
+      fullPath: '/evolucao'
+      preLoaderRoute: typeof TabsEvolucaoRouteImport
+      parentRoute: typeof TabsRoute
+    }
   }
 }
 
+interface TabsRouteChildren {
+  TabsEvolucaoRoute: typeof TabsEvolucaoRoute
+  TabsHomeRoute: typeof TabsHomeRoute
+  TabsPerfilRoute: typeof TabsPerfilRoute
+  TabsSocialRoute: typeof TabsSocialRoute
+  TabsTreinosRoute: typeof TabsTreinosRoute
+}
+
+const TabsRouteChildren: TabsRouteChildren = {
+  TabsEvolucaoRoute: TabsEvolucaoRoute,
+  TabsHomeRoute: TabsHomeRoute,
+  TabsPerfilRoute: TabsPerfilRoute,
+  TabsSocialRoute: TabsSocialRoute,
+  TabsTreinosRoute: TabsTreinosRoute,
+}
+
+const TabsRouteWithChildren = TabsRoute._addFileChildren(TabsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  TabsRoute: TabsRouteWithChildren,
+  ConquistasRoute: ConquistasRoute,
+  SerieRoute: SerieRoute,
+  TreinoRoute: TreinoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

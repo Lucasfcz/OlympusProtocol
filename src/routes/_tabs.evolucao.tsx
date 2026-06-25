@@ -60,7 +60,7 @@ function Evolution() {
               contentStyle={{ background: "#1A1A1A", border: "none", borderRadius: 8, padding: "6px 10px" }}
               labelStyle={{ color: "#C9A24B", fontSize: 10, letterSpacing: "0.1em" }}
               itemStyle={{ color: "#fff", fontSize: 12, fontWeight: 600 }}
-              formatter={(v: number) => [`${v} kg`, "Carga"]}
+              formatter={(v) => [`${v} kg`, "Carga"]}
             />
             <Line type="monotone" dataKey="v" stroke="#C9A24B" strokeWidth={2}
               dot={{ r: 2, fill: "#C9A24B", strokeWidth: 0 }}
