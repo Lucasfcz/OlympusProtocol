@@ -13,7 +13,7 @@
   --color-charcoal-2: #161616;
   --color-ivory: #F5F0E8;
   --color-ivory-2: #EDE6D8;
-  --color-gold: #C9A24B;
+  --color-gold: #C8A46A;
   --color-gold-soft: #B8923F;
   --color-gold-dim: #6b552a;
   --color-silver: #C0C0C0;
@@ -26,7 +26,7 @@
   --radius-card: 14px;
   --radius-input: 8px;
 
-  --shadow-gold: 0 0 24px -8px rgba(201, 162, 75, 0.45);
+  --shadow-gold: 0 0 24px -8px rgba(200, 164, 106, 0.45);
 }
 
 @theme inline {
@@ -34,19 +34,19 @@
   --color-foreground: var(--color-snow);
   --color-primary: var(--color-gold);
   --color-primary-foreground: var(--color-obsidian);
-  --color-border: rgba(201, 162, 75, 0.4);
+  --color-border: rgba(200, 164, 106, 0.4);
   --color-muted: var(--color-charcoal);
   --color-muted-foreground: var(--color-muted-dark);
 }
 
 @layer base {
   html, body {
-    background-color: #000;
+    background-color: var(--color-obsidian);
     color: var(--color-snow);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
-  body { margin: 0; }
+  body { margin: 0; overscroll-behavior-y: none; }
 }
 
 @utility label-caps {
@@ -64,7 +64,7 @@
 
 @utility gold-divider {
   height: 1px;
-  background: rgba(201, 162, 75, 0.4);
+  background: rgba(200, 164, 106, 0.4);
   width: 100%;
 }
 
@@ -76,7 +76,7 @@
 @utility card-dark {
   background-color: var(--color-charcoal);
   border-radius: var(--radius-card);
-  border: 1px solid rgba(201, 162, 75, 0.15);
+  border: 1px solid rgba(200, 164, 106, 0.15);
 }
 
 @utility card-light {

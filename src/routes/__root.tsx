@@ -56,12 +56,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Olympus Protocol — Disciplina · Evolução · Excelência" },
       { name: "description", content: "Aplicativo de treino premium para atletas disciplinados. Acompanhe carga, volume e evolução com o rigor de um protocolo olímpico." },
       { name: "theme-color", content: "#0A0A0A" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Olympus" },
+      { name: "mobile-web-app-capable", content: "yes" },
       { property: "og:title", content: "Olympus Protocol" },
       { property: "og:description", content: "Disciplina. Evolução. Excelência." },
       { property: "og:type", content: "website" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
       {
@@ -94,8 +101,8 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen w-full bg-black flex justify-center">
-        <div className="w-full max-w-[390px] min-h-screen relative overflow-hidden">
+      <div className="min-h-[100dvh] w-full bg-obsidian">
+        <div className="mx-auto w-full sm:max-w-[420px] min-h-[100dvh] relative overflow-hidden sm:my-0">
           <Outlet />
         </div>
       </div>

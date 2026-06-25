@@ -56,15 +56,15 @@ function Evolution() {
             <XAxis dataKey="m" tick={{ fontSize: 10, fill: "#6b6357" }} axisLine={false} tickLine={false} interval={2} />
             <YAxis domain={[0, 100]} ticks={[0, 20, 40, 60, 80, 100]} tick={{ fontSize: 10, fill: "#6b6357" }} axisLine={false} tickLine={false} width={36} />
             <Tooltip
-              cursor={{ stroke: "#C9A24B", strokeDasharray: "3 3" }}
+              cursor={{ stroke: "#C8A46A", strokeDasharray: "3 3" }}
               contentStyle={{ background: "#1A1A1A", border: "none", borderRadius: 8, padding: "6px 10px" }}
-              labelStyle={{ color: "#C9A24B", fontSize: 10, letterSpacing: "0.1em" }}
+              labelStyle={{ color: "#C8A46A", fontSize: 10, letterSpacing: "0.1em" }}
               itemStyle={{ color: "#fff", fontSize: 12, fontWeight: 600 }}
               formatter={(v) => [`${v} kg`, "Carga"]}
             />
-            <Line type="monotone" dataKey="v" stroke="#C9A24B" strokeWidth={2}
-              dot={{ r: 2, fill: "#C9A24B", strokeWidth: 0 }}
-              activeDot={{ r: 5, fill: "#C9A24B", stroke: "#fff", strokeWidth: 2 }}
+            <Line type="monotone" dataKey="v" stroke="#C8A46A" strokeWidth={2}
+              dot={{ r: 2, fill: "#C8A46A", strokeWidth: 0 }}
+              activeDot={{ r: 5, fill: "#C8A46A", stroke: "#fff", strokeWidth: 2 }}
               animationDuration={800}
             />
           </LineChart>

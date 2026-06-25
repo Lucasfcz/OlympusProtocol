@@ -58,7 +58,7 @@ function Conquistas() {
 }
 
 function Hex({ unlocked, icon }: { unlocked: boolean; icon: string }) {
-  const gold = unlocked ? "#C9A24B" : "rgba(201,162,75,0.35)";
+  const gold = unlocked ? "#C8A46A" : "rgba(200,164,106,0.35)";
   return (
     <div className={`relative w-[88px] h-[100px] ${unlocked ? "anim-badge" : ""}`}>
       <svg viewBox="0 0 88 100" className="absolute inset-0">
