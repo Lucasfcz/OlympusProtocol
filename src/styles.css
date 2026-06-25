@@ -41,12 +41,12 @@
 
 @layer base {
   html, body {
-    background-color: #000;
+    background-color: var(--color-obsidian);
     color: var(--color-snow);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
-  body { margin: 0; }
+  body { margin: 0; overscroll-behavior-y: none; }
 }
 
 @utility label-caps {
