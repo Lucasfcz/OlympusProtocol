@@ -11,12 +11,12 @@ export function RingProgress({
   return (
     <div className="relative" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} stroke="rgba(201,162,75,0.15)" strokeWidth={stroke} fill="none" />
+        <circle cx={size / 2} cy={size / 2} r={r} stroke="rgba(200,164,106,0.15)" strokeWidth={stroke} fill="none" />
         <circle
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke="#C9A24B"
+          stroke="#C8A46A"
           strokeWidth={stroke}
           fill="none"
           strokeLinecap="round"
