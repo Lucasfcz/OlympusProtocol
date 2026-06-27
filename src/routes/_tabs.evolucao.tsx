@@ -6,6 +6,7 @@ import {
 } from "recharts";
 import { ColumnSmall } from "@/components/olympus/Icons";
 import { weeklyEvolution } from "@/lib/mock-data";
+import { useTheme } from "@/lib/theme";
 
 export const Route = createFileRoute("/_tabs/evolucao")({
   head: () => ({
@@ -21,27 +22,30 @@ const tabs = ["CARGA", "VOLUME", "FREQUÊNCIA"] as const;
 
 function Evolution() {
   const [tab, setTab] = useState<(typeof tabs)[number]>("CARGA");
+  const { theme } = useTheme();
+  const axisColor = theme === "dark" ? "#8a8378" : "#6b6357";
+  const gridColor = theme === "dark" ? "rgba(255,255,255,0.06)" : "rgba(26,26,26,0.06)";
+  const tooltipBg = theme === "dark" ? "#1E1E1E" : "#1A1A1A";
+
   return (
-    <div className="min-h-screen bg-ivory text-ink anim-fade px-5 pt-6">
+    <div className="bg-surface text-fg anim-fade px-5 pt-6 pb-5">
       <header className="flex items-center justify-between">
-        <ColumnSmall className="text-ink" size={22} />
+        <ColumnSmall className="text-fg" size={22} />
         <p className="label-caps-lg text-[12px]">EVOLUÇÃO</p>
         <button className="btn-press"><Bell size={20} strokeWidth={1.6} /></button>
       </header>
 
-      <button className="mt-6 w-full card-light px-4 py-3.5 flex items-center justify-between btn-press">
+      <button className="mt-6 w-full card px-4 py-3.5 flex items-center justify-between btn-press">
         <span className="text-[15px] font-medium">Supino Reto</span>
         <ChevronDown size={18} className="text-gold" />
       </button>
 
-      <div className="mt-5 flex border-b border-ink/10">
+      <div className="mt-5 flex border-b border-divider">
         {tabs.map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`flex-1 pb-3 label-caps text-[11px] relative ${
-              tab === t ? "text-ink" : "text-muted-light"
-            }`}
+            className={`flex-1 pb-3 label-caps text-[11px] relative ${tab === t ? "text-fg" : "text-fg-muted"}`}
           >
             {t}
             {tab === t && <span className="absolute -bottom-px left-3 right-3 h-0.5 bg-gold rounded-full" />}
@@ -49,38 +53,38 @@ function Evolution() {
         ))}
       </div>
 
-      <div className="mt-5 h-[240px]">
+      <div className="mt-5 h-[220px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={weeklyEvolution} margin={{ top: 24, right: 8, left: -16, bottom: 4 }}>
-            <CartesianGrid stroke="rgba(26,26,26,0.06)" vertical={false} />
-            <XAxis dataKey="m" tick={{ fontSize: 10, fill: "#6b6357" }} axisLine={false} tickLine={false} interval={2} />
-            <YAxis domain={[0, 100]} ticks={[0, 20, 40, 60, 80, 100]} tick={{ fontSize: 10, fill: "#6b6357" }} axisLine={false} tickLine={false} width={36} />
+            <CartesianGrid stroke={gridColor} vertical={false} />
+            <XAxis dataKey="m" tick={{ fontSize: 10, fill: axisColor }} axisLine={false} tickLine={false} interval={2} />
+            <YAxis domain={[0, 100]} ticks={[0, 20, 40, 60, 80, 100]} tick={{ fontSize: 10, fill: axisColor }} axisLine={false} tickLine={false} width={36} />
             <Tooltip
               cursor={{ stroke: "#C8A46A", strokeDasharray: "3 3" }}
-              contentStyle={{ background: "#1A1A1A", border: "none", borderRadius: 8, padding: "6px 10px" }}
+              contentStyle={{ background: tooltipBg, border: "none", borderRadius: 8, padding: "6px 10px" }}
               labelStyle={{ color: "#C8A46A", fontSize: 10, letterSpacing: "0.1em" }}
               itemStyle={{ color: "#fff", fontSize: 12, fontWeight: 600 }}
               formatter={(v) => [`${v} kg`, "Carga"]}
             />
             <Line type="monotone" dataKey="v" stroke="#C8A46A" strokeWidth={2}
               dot={{ r: 2, fill: "#C8A46A", strokeWidth: 0 }}
-              activeDot={{ r: 5, fill: "#C8A46A", stroke: "#fff", strokeWidth: 2 }}
+              activeDot={{ r: 5, fill: "#C8A46A", stroke: theme === "dark" ? "#0A0A0A" : "#fff", strokeWidth: 2 }}
               animationDuration={800}
             />
           </LineChart>
         </ResponsiveContainer>
       </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-3">
-        <div className="card-light p-4 text-center">
-          <p className="label-caps text-muted-light">MELHOR MARCA</p>
-          <div className="mt-2"><span className="text-2xl font-bold">85</span><span className="text-sm text-muted-light ml-1">kg</span></div>
-          <p className="text-[11px] text-muted-light mt-2">03/06/2024</p>
+      <div className="mt-5 grid grid-cols-2 gap-3">
+        <div className="card p-4 text-center">
+          <p className="label-caps text-fg-muted">MELHOR MARCA</p>
+          <div className="mt-2"><span className="text-2xl font-bold">85</span><span className="text-sm text-fg-muted ml-1">kg</span></div>
+          <p className="text-[11px] text-fg-muted mt-2">03/06/2024</p>
         </div>
-        <div className="card-light p-4 text-center">
-          <p className="label-caps text-muted-light">EVOLUÇÃO</p>
-          <div className="mt-2"><span className="text-2xl font-bold text-gold">+25</span><span className="text-sm text-muted-light ml-1">kg</span></div>
-          <p className="text-[11px] text-muted-light mt-2">Desde 12/01/2024</p>
+        <div className="card p-4 text-center">
+          <p className="label-caps text-fg-muted">EVOLUÇÃO</p>
+          <div className="mt-2"><span className="text-2xl font-bold text-gold">+25</span><span className="text-sm text-fg-muted ml-1">kg</span></div>
+          <p className="text-[11px] text-fg-muted mt-2">Desde 12/01/2024</p>
         </div>
       </div>
     </div>

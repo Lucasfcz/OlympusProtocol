@@ -14,11 +14,9 @@ function Splash() {
   }, [navigate]);
 
   return (
-    <div className="relative min-h-screen w-full bg-obsidian overflow-hidden flex flex-col items-center justify-center anim-fade">
-      {/* atmospheric gradient */}
+    <div className="relative h-full w-full bg-obsidian overflow-hidden flex flex-col items-center justify-center anim-fade">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(200,164,106,0.10),transparent_60%)]" />
       <div className="absolute inset-x-0 bottom-0 h-64 bg-[radial-gradient(ellipse_at_bottom,rgba(255,255,255,0.04),transparent_70%)]" />
-      {/* mountain silhouette */}
       <svg viewBox="0 0 390 220" className="absolute bottom-0 left-0 right-0 opacity-40" preserveAspectRatio="none">
         <path d="M0 220 L 60 140 L 110 170 L 170 90 L 230 150 L 290 100 L 340 160 L 390 130 L 390 220 Z" fill="#0d0d0d" stroke="#1c1c1c"/>
       </svg>
