@@ -21,22 +21,22 @@ function Conquistas() {
   const list = tab === "CONQUISTAS" ? badges.filter((b) => b.unlocked) : badges;
 
   return (
-    <div className="min-h-screen bg-ivory text-ink anim-fade px-5 pt-6 pb-10">
-      <header className="grid grid-cols-3 items-center">
+    <div className="h-full flex flex-col bg-surface text-fg anim-fade">
+      <header className="grid grid-cols-3 items-center px-5 pt-6 shrink-0">
         <Link to="/perfil" className="btn-press justify-self-start"><ArrowLeft size={20} strokeWidth={1.6} /></Link>
         <div className="flex items-center justify-center gap-2">
-          <ColumnSmall className="text-ink" size={20} />
+          <ColumnSmall className="text-fg" size={20} />
           <p className="label-caps-lg text-[12px]">CONQUISTAS</p>
         </div>
         <span />
       </header>
 
-      <div className="mt-6 flex border-b border-ink/10">
+      <div className="mt-6 px-5 flex border-b border-divider shrink-0">
         {tabs.map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`flex-1 pb-3 label-caps text-[11px] relative ${tab === t ? "text-ink" : "text-muted-light"}`}
+            className={`flex-1 pb-3 label-caps text-[11px] relative ${tab === t ? "text-fg" : "text-fg-muted"}`}
           >
             {t}
             {tab === t && <span className="absolute -bottom-px left-3 right-3 h-0.5 bg-gold rounded-full" />}
@@ -44,12 +44,12 @@ function Conquistas() {
         ))}
       </div>
 
-      <ul className="mt-6 grid grid-cols-3 gap-x-3 gap-y-6">
+      <ul className="flex-1 overflow-y-auto olympus-scroll mt-6 px-5 grid grid-cols-3 gap-x-3 gap-y-6 content-start pb-6">
         {list.map((b) => (
           <li key={b.id} className="flex flex-col items-center text-center">
             <Hex unlocked={b.unlocked} icon={b.icon} />
-            <div className={`mt-2 text-[12px] font-semibold ${b.unlocked ? "text-ink" : "text-ink/50"}`}>{b.title}</div>
-            <div className="text-[10px] leading-tight text-muted-light mt-0.5 px-1">{b.subtitle}</div>
+            <div className={`mt-2 text-[12px] font-semibold ${b.unlocked ? "text-fg" : "text-fg/50"}`}>{b.title}</div>
+            <div className="text-[10px] leading-tight text-fg-muted mt-0.5 px-1">{b.subtitle}</div>
           </li>
         ))}
       </ul>
@@ -68,23 +68,12 @@ function Hex({ unlocked, icon }: { unlocked: boolean; icon: string }) {
             <stop offset="100%" stopColor="#0A0A0A" />
           </linearGradient>
         </defs>
-        <polygon
-          points="44,2 84,25 84,75 44,98 4,75 4,25"
-          fill={`url(#gx-${unlocked})`}
-          stroke={gold}
-          strokeWidth="2"
-        />
+        <polygon points="44,2 84,25 84,75 44,98 4,75 4,25" fill={`url(#gx-${unlocked})`} stroke={gold} strokeWidth="2" />
         {unlocked && (
-          <polygon
-            points="44,2 84,25 84,75 44,98 4,75 4,25"
-            fill="none"
-            stroke={gold}
-            strokeWidth="6"
-            opacity="0.15"
-          />
+          <polygon points="44,2 84,25 84,75 44,98 4,75 4,25" fill="none" stroke={gold} strokeWidth="6" opacity="0.15" />
         )}
       </svg>
-      <div className={`absolute inset-0 flex items-center justify-center`} style={{ color: gold }}>
+      <div className="absolute inset-0 flex items-center justify-center" style={{ color: gold }}>
         {icon === "wreath" && <Laurel size={36} />}
         {icon === "column" && <ColumnSmall size={32} />}
         {icon === "athlete" && <AthleteGlyph />}

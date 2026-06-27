@@ -9,39 +9,23 @@ const items = [
   { to: "/perfil", label: "Perfil", icon: User },
 ] as const;
 
-export function BottomNav({ theme = "dark" }: { theme?: "dark" | "light" }) {
+export function BottomNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isDark = theme === "dark";
   return (
     <nav
-      className={`absolute bottom-0 left-0 right-0 flex items-center justify-between px-3 pt-3 pb-5 ${
-        isDark ? "bg-obsidian border-t border-gold/15" : "bg-white border-t border-ink/10"
-      }`}
+      className="shrink-0 flex items-center justify-between px-3 pt-3 pb-5 bg-surface border-t border-divider"
+      style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 14px)" }}
     >
       {items.map(({ to, label, icon: Icon }) => {
-        const active = pathname === to || (to === "/home" && pathname === "/home");
+        const active = pathname === to;
         return (
-          <Link
-            key={to}
-            to={to}
-            className="flex-1 flex flex-col items-center gap-1 btn-press"
-          >
+          <Link key={to} to={to} className="flex-1 flex flex-col items-center gap-1 btn-press">
             <Icon
               size={20}
               strokeWidth={1.6}
-              className={
-                active
-                  ? "text-gold"
-                  : isDark
-                  ? "text-muted-dark"
-                  : "text-muted-light"
-              }
+              className={active ? "text-gold" : "text-fg-muted"}
             />
-            <span
-              className={`text-[10px] tracking-wider ${
-                active ? "text-gold font-medium" : isDark ? "text-muted-dark" : "text-muted-light"
-              }`}
-            >
+            <span className={`text-[10px] tracking-wider ${active ? "text-gold font-medium" : "text-fg-muted"}`}>
               {label}
             </span>
           </Link>

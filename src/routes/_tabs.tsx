@@ -7,9 +7,11 @@ export const Route = createFileRoute("/_tabs")({
 
 function TabsLayout() {
   return (
-    <div className="min-h-screen pb-24">
-      <Outlet />
-      <BottomNav theme="dark" />
+    <div className="h-full flex flex-col">
+      <main className="flex-1 overflow-y-auto olympus-scroll pb-3">
+        <Outlet />
+      </main>
+      <BottomNav />
     </div>
   );
 }
