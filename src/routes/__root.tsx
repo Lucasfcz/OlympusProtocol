@@ -101,11 +101,25 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-[100dvh] w-full bg-obsidian">
-        <div className="mx-auto w-full sm:max-w-[420px] min-h-[100dvh] relative overflow-hidden sm:my-0">
+      <ThemeProvider>
+        <ThemedFrame>
           <Outlet />
-        </div>
-      </div>
+        </ThemedFrame>
+      </ThemeProvider>
     </QueryClientProvider>
+  );
+}
+
+function ThemedFrame({ children }: { children: ReactNode }) {
+  const { theme } = useTheme();
+  return (
+    <div
+      data-theme={theme}
+      className="h-[100dvh] w-full bg-surface text-fg"
+    >
+      <div className="mx-auto w-full sm:max-w-[420px] h-[100dvh] relative overflow-hidden bg-surface">
+        {children}
+      </div>
+    </div>
   );
 }
