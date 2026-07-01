@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TreinoRouteImport } from './routes/treino'
 import { Route as SerieRouteImport } from './routes/serie'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as ConquistasRouteImport } from './routes/conquistas'
 import { Route as TabsRouteImport } from './routes/_tabs'
 import { Route as IndexRouteImport } from './routes/index'
@@ -28,6 +29,11 @@ const TreinoRoute = TreinoRouteImport.update({
 const SerieRoute = SerieRouteImport.update({
   id: '/serie',
   path: '/serie',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConquistasRoute = ConquistasRouteImport.update({
@@ -73,6 +79,7 @@ const TabsEvolucaoRoute = TabsEvolucaoRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/conquistas': typeof ConquistasRoute
+  '/login': typeof LoginRoute
   '/serie': typeof SerieRoute
   '/treino': typeof TreinoRoute
   '/evolucao': typeof TabsEvolucaoRoute
@@ -84,6 +91,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/conquistas': typeof ConquistasRoute
+  '/login': typeof LoginRoute
   '/serie': typeof SerieRoute
   '/treino': typeof TreinoRoute
   '/evolucao': typeof TabsEvolucaoRoute
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_tabs': typeof TabsRouteWithChildren
   '/conquistas': typeof ConquistasRoute
+  '/login': typeof LoginRoute
   '/serie': typeof SerieRoute
   '/treino': typeof TreinoRoute
   '/_tabs/evolucao': typeof TabsEvolucaoRoute
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/conquistas'
+    | '/login'
     | '/serie'
     | '/treino'
     | '/evolucao'
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/conquistas'
+    | '/login'
     | '/serie'
     | '/treino'
     | '/evolucao'
@@ -133,6 +144,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_tabs'
     | '/conquistas'
+    | '/login'
     | '/serie'
     | '/treino'
     | '/_tabs/evolucao'
@@ -146,6 +158,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   TabsRoute: typeof TabsRouteWithChildren
   ConquistasRoute: typeof ConquistasRoute
+  LoginRoute: typeof LoginRoute
   SerieRoute: typeof SerieRoute
   TreinoRoute: typeof TreinoRoute
 }
@@ -164,6 +177,13 @@ declare module '@tanstack/react-router' {
       path: '/serie'
       fullPath: '/serie'
       preLoaderRoute: typeof SerieRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/conquistas': {
@@ -247,6 +267,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   TabsRoute: TabsRouteWithChildren,
   ConquistasRoute: ConquistasRoute,
+  LoginRoute: LoginRoute,
   SerieRoute: SerieRoute,
   TreinoRoute: TreinoRoute,
 }
