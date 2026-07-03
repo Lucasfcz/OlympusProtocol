@@ -256,7 +256,11 @@ export const SessionsAPI = {
   createFree: () => api.post<WorkoutSessionResponse>("/api/sessions/free"),
   createFromPlan: (workoutDayId: string) =>
     api.post<WorkoutSessionResponse>(`/api/sessions/from-plan/${workoutDayId}`),
-  list: () => api.get<WorkoutSessionResponse[]>("/api/sessions"),
+  list: (page?: PageParams) => {
+    const q = new URLSearchParams();
+    appendPageParams(q, page);
+    return api.get<Page<WorkoutSessionResponse>>(`/api/sessions?${q.toString()}`);
+  },
   get: (sessionId: string) => api.get<WorkoutSessionResponse>(`/api/sessions/${sessionId}`),
   summary: (sessionId: string) => api.get<SessionSummaryResponse>(`/api/sessions/${sessionId}/summary`),
   addExercise: (sessionId: string, d: { exerciseId: string; exerciseOrder: number }) =>
