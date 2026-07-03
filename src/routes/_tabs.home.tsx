@@ -31,15 +31,15 @@ function Home() {
   const stats = useQuery({ queryKey: ["stats", "me"], queryFn: StatsAPI.me });
   const weekly = useQuery({ queryKey: ["stats", "weekly"], queryFn: StatsAPI.weeklyVolume });
   const freq = useQuery({ queryKey: ["stats", "frequency"] , queryFn: StatsAPI.monthlyFrequency });
-  const plans = useQuery({ queryKey: ["plans"], queryFn: PlansAPI.list });
-  const sessions = useQuery({ queryKey: ["sessions"], queryFn: SessionsAPI.list });
+  const plans = useQuery({ queryKey: ["plans", 0], queryFn: () => PlansAPI.list({ page: 0 }) });
+  const sessions = useQuery({ queryKey: ["sessions", 0], queryFn: () => SessionsAPI.list({ page: 0 }) });
 
-  const activePlan = plans.data?.find((p) => p.active);
+  const activePlan = plans.data?.content.find((p) => p.active);
   const nextDay = activePlan?.days?.slice().sort((a, b) => a.dayOrder - b.dayOrder)[0];
-  const activeSession = sessions.data?.find((s) => !s.finishedAt);
+  const activeSession = sessions.data?.content.find((s) => !s.finishedAt);
 
   useEffect(() => {
-    plans.data?.forEach((p) => p.warnings?.forEach((w) => toast.warning(w)));
+    plans.data?.content.forEach((p) => p.warnings?.forEach((w) => toast.warning(w)));
   }, [plans.data]);
 
   const discipline = Math.min(100, Math.round((freq.data?.avgSessionsPerWeek ?? 0) / 5 * 100));
