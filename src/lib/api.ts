@@ -193,7 +193,11 @@ export const UsersAPI = {
   updateHeight: (height: number) => api.put<void>("/api/users/me/height", { height }),
   delete: () => api.del("/api/users/me"),
   get: (userId: string) => api.get<UserSummary>(`/api/users/${userId}`),
-  search: (name: string) => api.get<UserSummary[]>(`/api/users/search?name=${encodeURIComponent(name)}`),
+  search: (name: string, page?: PageParams) => {
+    const q = new URLSearchParams({ name });
+    appendPageParams(q, page);
+    return api.get<Page<UserSummary>>(`/api/users/search?${q.toString()}`);
+  },
 };
 
 export const PlansAPI = {
