@@ -201,7 +201,11 @@ export const UsersAPI = {
 };
 
 export const PlansAPI = {
-  list: () => api.get<WorkoutPlanResponse[]>("/api/workout-plans"),
+  list: (page?: PageParams) => {
+    const q = new URLSearchParams();
+    appendPageParams(q, page);
+    return api.get<Page<WorkoutPlanResponse>>(`/api/workout-plans?${q.toString()}`);
+  },
   get: (id: string) => api.get<WorkoutPlanResponse>(`/api/workout-plans/${id}`),
   create: (d: { name: string; goal: Goal }) => api.post<WorkoutPlanResponse>("/api/workout-plans", d),
   copy: (originalPlanId: string, d: { name: string; goal: Goal }) =>
