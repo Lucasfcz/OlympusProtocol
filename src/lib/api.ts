@@ -238,7 +238,7 @@ export const ExercisesAPI = {
     name?: string; muscleGroups?: MuscleGroup[];
     safetyRatings?: number[]; efficiencyRatings?: number[];
     levels?: ExperienceLevel[]; muscleHeads?: string[];
-  } = {}) => {
+  } = {}, page?: PageParams) => {
     const q = new URLSearchParams();
     if (params.name) q.set("name", params.name);
     params.muscleGroups?.forEach(v => q.append("muscleGroups", v));
@@ -246,8 +246,8 @@ export const ExercisesAPI = {
     params.efficiencyRatings?.forEach(v => q.append("efficiencyRatings", String(v)));
     params.levels?.forEach(v => q.append("levels", v));
     params.muscleHeads?.forEach(v => q.append("muscleHeads", v));
-    const s = q.toString();
-    return api.get<ExerciseResponse[]>(`/api/exercises${s ? `?${s}` : ""}`);
+    appendPageParams(q, page);
+    return api.get<Page<ExerciseResponse>>(`/api/exercises?${q.toString()}`);
   },
   get: (id: string) => api.get<ExerciseResponse>(`/api/exercises/${id}`),
 };
