@@ -51,6 +51,8 @@ function Treinos() {
     onSuccess: (plan) => {
       plan.warnings?.forEach((w) => toast.warning(w));
       toast.success("Plano criado.");
+      setPlans([]);
+      setPage(0);
       qc.invalidateQueries({ queryKey: ["plans"] });
       setCreating(false);
       setConfirmActive(null);
