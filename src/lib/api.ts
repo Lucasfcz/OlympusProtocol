@@ -95,6 +95,32 @@ export type ExerciseStats = {
   progression: { date: string; value: number }[];
 };
 
+// ---------- Pagination (Spring Data) ----------
+export type Page<T> = {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+  first: boolean;
+  last: boolean;
+  numberOfElements?: number;
+  empty?: boolean;
+};
+export type PageParams = { page?: number; size?: number; sort?: string };
+export const DEFAULT_PAGE_SIZE = 20;
+
+export const emptyPage = <T>(): Page<T> => ({
+  content: [], totalElements: 0, totalPages: 0,
+  number: 0, size: DEFAULT_PAGE_SIZE, first: true, last: true,
+});
+
+export function appendPageParams(q: URLSearchParams, p?: PageParams) {
+  q.set("page", String(p?.page ?? 0));
+  q.set("size", String(p?.size ?? DEFAULT_PAGE_SIZE));
+  if (p?.sort) q.set("sort", p.sort);
+}
+
 // ---------- Client ----------
 export class ApiError extends Error {
   constructor(public status: number, public payload: unknown, msg: string) { super(msg); }
@@ -167,11 +193,19 @@ export const UsersAPI = {
   updateHeight: (height: number) => api.put<void>("/api/users/me/height", { height }),
   delete: () => api.del("/api/users/me"),
   get: (userId: string) => api.get<UserSummary>(`/api/users/${userId}`),
-  search: (name: string) => api.get<UserSummary[]>(`/api/users/search?name=${encodeURIComponent(name)}`),
+  search: (name: string, page?: PageParams) => {
+    const q = new URLSearchParams({ name });
+    appendPageParams(q, page);
+    return api.get<Page<UserSummary>>(`/api/users/search?${q.toString()}`);
+  },
 };
 
 export const PlansAPI = {
-  list: () => api.get<WorkoutPlanResponse[]>("/api/workout-plans"),
+  list: (page?: PageParams) => {
+    const q = new URLSearchParams();
+    appendPageParams(q, page);
+    return api.get<Page<WorkoutPlanResponse>>(`/api/workout-plans?${q.toString()}`);
+  },
   get: (id: string) => api.get<WorkoutPlanResponse>(`/api/workout-plans/${id}`),
   create: (d: { name: string; goal: Goal }) => api.post<WorkoutPlanResponse>("/api/workout-plans", d),
   copy: (originalPlanId: string, d: { name: string; goal: Goal }) =>
@@ -204,7 +238,7 @@ export const ExercisesAPI = {
     name?: string; muscleGroups?: MuscleGroup[];
     safetyRatings?: number[]; efficiencyRatings?: number[];
     levels?: ExperienceLevel[]; muscleHeads?: string[];
-  } = {}) => {
+  } = {}, page?: PageParams) => {
     const q = new URLSearchParams();
     if (params.name) q.set("name", params.name);
     params.muscleGroups?.forEach(v => q.append("muscleGroups", v));
@@ -212,8 +246,8 @@ export const ExercisesAPI = {
     params.efficiencyRatings?.forEach(v => q.append("efficiencyRatings", String(v)));
     params.levels?.forEach(v => q.append("levels", v));
     params.muscleHeads?.forEach(v => q.append("muscleHeads", v));
-    const s = q.toString();
-    return api.get<ExerciseResponse[]>(`/api/exercises${s ? `?${s}` : ""}`);
+    appendPageParams(q, page);
+    return api.get<Page<ExerciseResponse>>(`/api/exercises?${q.toString()}`);
   },
   get: (id: string) => api.get<ExerciseResponse>(`/api/exercises/${id}`),
 };
@@ -222,7 +256,11 @@ export const SessionsAPI = {
   createFree: () => api.post<WorkoutSessionResponse>("/api/sessions/free"),
   createFromPlan: (workoutDayId: string) =>
     api.post<WorkoutSessionResponse>(`/api/sessions/from-plan/${workoutDayId}`),
-  list: () => api.get<WorkoutSessionResponse[]>("/api/sessions"),
+  list: (page?: PageParams) => {
+    const q = new URLSearchParams();
+    appendPageParams(q, page);
+    return api.get<Page<WorkoutSessionResponse>>(`/api/sessions?${q.toString()}`);
+  },
   get: (sessionId: string) => api.get<WorkoutSessionResponse>(`/api/sessions/${sessionId}`),
   summary: (sessionId: string) => api.get<SessionSummaryResponse>(`/api/sessions/${sessionId}/summary`),
   addExercise: (sessionId: string, d: { exerciseId: string; exerciseOrder: number }) =>

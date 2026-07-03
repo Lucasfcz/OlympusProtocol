@@ -1,9 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Dumbbell, ChevronRight, Play, Plus, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { Dumbbell, Play, Plus, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { PlansAPI, SessionsAPI, type Goal, type WorkoutPlanResponse } from "@/lib/api";
+import { LoadMoreButton } from "@/components/olympus/LoadMoreButton";
 
 export const Route = createFileRoute("/_tabs/treinos")({
   head: () => ({
@@ -28,8 +29,21 @@ function Treinos() {
   const [creating, setCreating] = useState(false);
   const [confirmActive, setConfirmActive] = useState<WorkoutPlanResponse | null>(null);
   const [pendingCreate, setPendingCreate] = useState<{ name: string; goal: Goal } | null>(null);
+  const [page, setPage] = useState(0);
+  const [plans, setPlans] = useState<WorkoutPlanResponse[]>([]);
 
-  const { data: plans = [], isLoading } = useQuery({ queryKey: ["plans"], queryFn: PlansAPI.list });
+  const plansQuery = useQuery({
+    queryKey: ["plans", page],
+    queryFn: () => PlansAPI.list({ page, size: 20 }),
+  });
+
+  useEffect(() => {
+    if (!plansQuery.data) return;
+    setPlans((prev) => page === 0 ? plansQuery.data!.content : [...prev, ...plansQuery.data!.content]);
+  }, [plansQuery.data, page]);
+
+  const isLoading = plansQuery.isLoading && plans.length === 0;
+  const hasMore = plansQuery.data ? !plansQuery.data.last : false;
   const activePlan = plans.find((p) => p.active);
 
   const createMut = useMutation({
@@ -37,6 +51,8 @@ function Treinos() {
     onSuccess: (plan) => {
       plan.warnings?.forEach((w) => toast.warning(w));
       toast.success("Plano criado.");
+      setPlans([]);
+      setPage(0);
       qc.invalidateQueries({ queryKey: ["plans"] });
       setCreating(false);
       setConfirmActive(null);
@@ -137,6 +153,12 @@ function Treinos() {
           </li>
         ))}
       </ul>
+
+      <LoadMoreButton
+        hasMore={hasMore}
+        loading={plansQuery.isFetching && page > 0}
+        onClick={() => setPage((p) => p + 1)}
+      />
 
       <Link to="/conquistas" className="mt-6 mb-2 block text-center label-caps text-gold text-[11px]">
         VER CONQUISTAS →

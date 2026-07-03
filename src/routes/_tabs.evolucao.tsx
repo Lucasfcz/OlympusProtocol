@@ -31,10 +31,11 @@ function Evolution() {
   const gridColor = theme === "dark" ? "rgba(255,255,255,0.06)" : "rgba(26,26,26,0.06)";
   const tooltipBg = theme === "dark" ? "#1E1E1E" : "#1A1A1A";
 
-  const exercises = useQuery({ queryKey: ["exercises"], queryFn: () => ExercisesAPI.list() });
+  const exercises = useQuery({ queryKey: ["exercises", 0], queryFn: () => ExercisesAPI.list({}, { page: 0, size: 40 }) });
+  const exerciseList = exercises.data?.content ?? [];
 
-  const currentExId = exerciseId ?? exercises.data?.[0]?.id ?? "";
-  const currentExName = exercises.data?.find((e) => e.id === currentExId)?.name ?? "Selecionar exercício";
+  const currentExId = exerciseId ?? exerciseList[0]?.id ?? "";
+  const currentExName = exerciseList.find((e) => e.id === currentExId)?.name ?? "Selecionar exercício";
 
   const exStats = useQuery({
     queryKey: ["stats", "exercise", currentExId],
@@ -75,7 +76,7 @@ function Evolution() {
         </button>
         {pickerOpen && (
           <ul className="absolute z-20 top-full mt-1 w-full max-h-64 overflow-y-auto olympus-scroll card p-2">
-            {exercises.data?.slice(0, 40).map((e) => (
+            {exerciseList.slice(0, 40).map((e) => (
               <li key={e.id}>
                 <button onClick={() => { setExerciseId(e.id); setPickerOpen(false); }}
                   className={`w-full text-left px-3 py-2 rounded-[8px] text-sm hover:bg-gold/10 ${e.id === currentExId ? "text-gold" : ""}`}>

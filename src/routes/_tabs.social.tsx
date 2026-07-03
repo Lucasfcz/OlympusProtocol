@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, Award, Loader2 } from "lucide-react";
 import { UsersAPI, type UserSummary } from "@/lib/api";
+import { LoadMoreButton } from "@/components/olympus/LoadMoreButton";
 
 export const Route = createFileRoute("/_tabs/social")({
   head: () => ({
@@ -25,11 +26,27 @@ const levelLabel: Record<string, string> = {
 
 function Social() {
   const [q, setQ] = useState("");
+  const [page, setPage] = useState(0);
+  const [items, setItems] = useState<UserSummary[]>([]);
+
+  // Reset acumulador quando query muda
+  useEffect(() => {
+    setPage(0);
+    setItems([]);
+  }, [q]);
+
   const search = useQuery({
-    queryKey: ["users", "search", q],
-    queryFn: () => UsersAPI.search(q),
+    queryKey: ["users", "search", q, page],
+    queryFn: () => UsersAPI.search(q, { page, size: 20 }),
     enabled: q.length >= 2,
   });
+
+  useEffect(() => {
+    if (!search.data) return;
+    setItems((prev) => page === 0 ? search.data!.content : [...prev, ...search.data!.content]);
+  }, [search.data, page]);
+
+  const hasMore = search.data ? !search.data.last : false;
 
   return (
     <div className="bg-surface text-fg anim-fade px-5 pt-6 pb-5">
@@ -48,13 +65,15 @@ function Social() {
 
       <div className="mt-6">
         <p className="label-caps text-fg-muted text-[10px] mb-3">
-          {q.length < 2 ? "DIGITE PARA BUSCAR" : `RESULTADOS · ${search.data?.length ?? 0}`}
+          {q.length < 2
+            ? "DIGITE PARA BUSCAR"
+            : `RESULTADOS · ${search.data?.totalElements ?? items.length}`}
         </p>
-        {search.isFetching && (
+        {search.isFetching && page === 0 && (
           <div className="flex justify-center py-4 text-fg-muted"><Loader2 className="animate-spin" size={20} /></div>
         )}
         <ul className="space-y-2.5">
-          {(search.data ?? []).map((u: UserSummary, i) => (
+          {items.map((u, i) => (
             <li key={u.id} className="card px-3 py-3 flex items-center gap-3">
               <span className={`w-6 text-center font-bold ${i === 0 ? "text-gold" : i === 1 ? "text-silver" : i === 2 ? "text-bronze" : "text-fg-muted"}`}>
                 {i + 1}
@@ -69,10 +88,16 @@ function Social() {
               <Award size={18} className="text-gold/60" />
             </li>
           ))}
-          {q.length >= 2 && !search.isFetching && (search.data ?? []).length === 0 && (
+          {q.length >= 2 && !search.isFetching && items.length === 0 && (
             <li className="text-center text-sm text-fg-muted py-6">Nenhum atleta encontrado.</li>
           )}
         </ul>
+
+        <LoadMoreButton
+          hasMore={hasMore && q.length >= 2}
+          loading={search.isFetching && page > 0}
+          onClick={() => setPage((p) => p + 1)}
+        />
       </div>
     </div>
   );
