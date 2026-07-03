@@ -29,8 +29,21 @@ function Treinos() {
   const [creating, setCreating] = useState(false);
   const [confirmActive, setConfirmActive] = useState<WorkoutPlanResponse | null>(null);
   const [pendingCreate, setPendingCreate] = useState<{ name: string; goal: Goal } | null>(null);
+  const [page, setPage] = useState(0);
+  const [plans, setPlans] = useState<WorkoutPlanResponse[]>([]);
 
-  const { data: plans = [], isLoading } = useQuery({ queryKey: ["plans"], queryFn: PlansAPI.list });
+  const plansQuery = useQuery({
+    queryKey: ["plans", page],
+    queryFn: () => PlansAPI.list({ page, size: 20 }),
+  });
+
+  useEffect(() => {
+    if (!plansQuery.data) return;
+    setPlans((prev) => page === 0 ? plansQuery.data!.content : [...prev, ...plansQuery.data!.content]);
+  }, [plansQuery.data, page]);
+
+  const isLoading = plansQuery.isLoading && plans.length === 0;
+  const hasMore = plansQuery.data ? !plansQuery.data.last : false;
   const activePlan = plans.find((p) => p.active);
 
   const createMut = useMutation({
