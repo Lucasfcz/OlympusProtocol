@@ -76,7 +76,7 @@ function Evolution() {
         </button>
         {pickerOpen && (
           <ul className="absolute z-20 top-full mt-1 w-full max-h-64 overflow-y-auto olympus-scroll card p-2">
-            {exercises.data?.slice(0, 40).map((e) => (
+            {exerciseList.slice(0, 40).map((e) => (
               <li key={e.id}>
                 <button onClick={() => { setExerciseId(e.id); setPickerOpen(false); }}
                   className={`w-full text-left px-3 py-2 rounded-[8px] text-sm hover:bg-gold/10 ${e.id === currentExId ? "text-gold" : ""}`}>
