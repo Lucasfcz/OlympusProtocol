@@ -154,6 +154,12 @@ function Treinos() {
         ))}
       </ul>
 
+      <LoadMoreButton
+        hasMore={hasMore}
+        loading={plansQuery.isFetching && page > 0}
+        onClick={() => setPage((p) => p + 1)}
+      />
+
       <Link to="/conquistas" className="mt-6 mb-2 block text-center label-caps text-gold text-[11px]">
         VER CONQUISTAS →
       </Link>
