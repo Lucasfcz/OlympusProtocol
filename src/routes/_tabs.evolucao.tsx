@@ -31,10 +31,11 @@ function Evolution() {
   const gridColor = theme === "dark" ? "rgba(255,255,255,0.06)" : "rgba(26,26,26,0.06)";
   const tooltipBg = theme === "dark" ? "#1E1E1E" : "#1A1A1A";
 
-  const exercises = useQuery({ queryKey: ["exercises"], queryFn: () => ExercisesAPI.list() });
+  const exercises = useQuery({ queryKey: ["exercises", 0], queryFn: () => ExercisesAPI.list({}, { page: 0, size: 40 }) });
+  const exerciseList = exercises.data?.content ?? [];
 
-  const currentExId = exerciseId ?? exercises.data?.[0]?.id ?? "";
-  const currentExName = exercises.data?.find((e) => e.id === currentExId)?.name ?? "Selecionar exercício";
+  const currentExId = exerciseId ?? exerciseList[0]?.id ?? "";
+  const currentExName = exerciseList.find((e) => e.id === currentExId)?.name ?? "Selecionar exercício";
 
   const exStats = useQuery({
     queryKey: ["stats", "exercise", currentExId],
