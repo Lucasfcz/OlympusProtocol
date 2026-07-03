@@ -95,6 +95,32 @@ export type ExerciseStats = {
   progression: { date: string; value: number }[];
 };
 
+// ---------- Pagination (Spring Data) ----------
+export type Page<T> = {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+  first: boolean;
+  last: boolean;
+  numberOfElements?: number;
+  empty?: boolean;
+};
+export type PageParams = { page?: number; size?: number; sort?: string };
+export const DEFAULT_PAGE_SIZE = 20;
+
+export const emptyPage = <T>(): Page<T> => ({
+  content: [], totalElements: 0, totalPages: 0,
+  number: 0, size: DEFAULT_PAGE_SIZE, first: true, last: true,
+});
+
+export function appendPageParams(q: URLSearchParams, p?: PageParams) {
+  q.set("page", String(p?.page ?? 0));
+  q.set("size", String(p?.size ?? DEFAULT_PAGE_SIZE));
+  if (p?.sort) q.set("sort", p.sort);
+}
+
 // ---------- Client ----------
 export class ApiError extends Error {
   constructor(public status: number, public payload: unknown, msg: string) { super(msg); }
