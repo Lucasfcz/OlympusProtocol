@@ -34,7 +34,7 @@ O frontend foi construído com o auxílio do **[Lovable](https://lovable.dev)**,
 
 ---
 
-## 🔌 Integração com a API
+## Integração com a API
 
 O frontend consome a Olympus Protocol API via REST, com autenticação JWT. Pontos de atenção documentados para manter consistência entre front e back:
 
