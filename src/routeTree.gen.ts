@@ -13,7 +13,7 @@ import { Route as TreinoRouteImport } from './routes/treino'
 import { Route as SerieRouteImport } from './routes/serie'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as ConquistasRouteImport } from './routes/conquistas'
+import { Route as DiaRouteImport } from './routes/dia'
 import { Route as TabsRouteImport } from './routes/_tabs'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TabsTreinosRouteImport } from './routes/_tabs.treinos'
@@ -42,9 +42,9 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ConquistasRoute = ConquistasRouteImport.update({
-  id: '/conquistas',
-  path: '/conquistas',
+const DiaRoute = DiaRouteImport.update({
+  id: '/dia',
+  path: '/dia',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TabsRoute = TabsRouteImport.update({
@@ -84,7 +84,7 @@ const TabsEvolucaoRoute = TabsEvolucaoRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/conquistas': typeof ConquistasRoute
+  '/dia': typeof DiaRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/serie': typeof SerieRoute
@@ -97,7 +97,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/conquistas': typeof ConquistasRoute
+  '/dia': typeof DiaRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/serie': typeof SerieRoute
@@ -112,7 +112,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_tabs': typeof TabsRouteWithChildren
-  '/conquistas': typeof ConquistasRoute
+  '/dia': typeof DiaRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/serie': typeof SerieRoute
@@ -127,7 +127,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/conquistas'
+    | '/dia'
     | '/login'
     | '/register'
     | '/serie'
@@ -140,7 +140,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/conquistas'
+    | '/dia'
     | '/login'
     | '/register'
     | '/serie'
@@ -154,7 +154,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_tabs'
-    | '/conquistas'
+    | '/dia'
     | '/login'
     | '/register'
     | '/serie'
@@ -169,7 +169,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   TabsRoute: typeof TabsRouteWithChildren
-  ConquistasRoute: typeof ConquistasRoute
+  DiaRoute: typeof DiaRoute
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   SerieRoute: typeof SerieRoute
@@ -206,11 +206,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/conquistas': {
-      id: '/conquistas'
-      path: '/conquistas'
-      fullPath: '/conquistas'
-      preLoaderRoute: typeof ConquistasRouteImport
+    '/dia': {
+      id: '/dia'
+      path: '/dia'
+      fullPath: '/dia'
+      preLoaderRoute: typeof DiaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_tabs': {
@@ -286,7 +286,7 @@ const TabsRouteWithChildren = TabsRoute._addFileChildren(TabsRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   TabsRoute: TabsRouteWithChildren,
-  ConquistasRoute: ConquistasRoute,
+  DiaRoute: DiaRoute,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   SerieRoute: SerieRoute,

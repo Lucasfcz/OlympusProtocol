@@ -80,15 +80,10 @@ export default defineConfig({
                 expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 },
               },
             },
+            // API: sem cache — backend removeu Redis, sempre buscar fresco.
             {
               urlPattern: ({ url }) => url.origin === "https://olympusprotocol.onrender.com",
-              handler: "NetworkFirst",
-              options: {
-                cacheName: "olympus-api",
-                networkTimeoutSeconds: 6,
-                expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 },
-                cacheableResponse: { statuses: [0, 200] },
-              },
+              handler: "NetworkOnly",
             },
           ],
         },
