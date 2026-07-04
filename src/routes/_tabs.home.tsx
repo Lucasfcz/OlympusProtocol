@@ -128,7 +128,7 @@ function Home() {
 
       <div className="mt-4">
         <Link to="/treinos" className="block text-center label-caps text-gold text-[11px]">
-          VER SEUS PLANOS →
+          VER SEU PLANO →
         </Link>
       </div>
     </div>
