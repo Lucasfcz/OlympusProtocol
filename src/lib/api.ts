@@ -257,6 +257,7 @@ export const SessionsAPI = {
   createFree: () => api.post<WorkoutSessionResponse>("/api/sessions/free"),
   createFromPlan: (workoutDayId: string) =>
     api.post<WorkoutSessionResponse>(`/api/sessions/from-plan/${workoutDayId}`),
+  active: () => api.get<WorkoutSessionResponse | null>("/api/sessions/active"),
   list: (page?: PageParams) => {
     const q = new URLSearchParams();
     appendPageParams(q, page);
