@@ -147,9 +147,48 @@ function StatBox({ value, label, rawValue }: { value: string; label: string; raw
   );
 }
 
+function PlanCard({ plan, isActive = false }: { plan: WorkoutPlanResponse; isActive?: boolean }) {
+  const qc = useQueryClient();
+  const archive = useMutation({
+    mutationFn: () => PlansAPI.deactivate(plan.id),
+    onSuccess: () => {
+      toast.success("Plano arquivado.");
+      qc.invalidateQueries({ queryKey: ["plans"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return (
+    <div className="mt-2 rounded-lg bg-card p-4 border-2" style={{ borderColor: isActive ? "#C9A24B" : "rgba(255,255,255,0.08)" }}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          {isActive && <Check size={12} className="text-gold" strokeWidth={3} />}
+          <span className="label-caps text-gold text-[10px]">{isActive ? "ATIVO" : "ARQUIVADO"}</span>
+        </div>
+        <span className="label-caps text-fg-muted text-[10px]">{fmtMonth(plan.createdAt)}</span>
+      </div>
+      <h2 className="mt-2 text-xl font-bold truncate">{plan.name}</h2>
+      <p className="text-[11px] text-fg-muted mt-0.5 truncate">
+        {plan.days.map((d) => d.name).join(" · ") || "—"}
+      </p>
+      <div className="mt-3 flex items-center gap-3 text-[11px] text-fg-muted">
+        <span>{plan.days.length}d/sem</span>
+        <span>·</span>
+        <span>{plan.days.reduce((a, d) => a + d.exercises.length, 0)} exercícios</span>
+      </div>
+      {isActive && (
+        <button
+          onClick={() => confirm(`Arquivar "${plan.name}"?`) && archive.mutate()}
+          disabled={archive.isPending}
+          className="mt-3 label-caps text-[10px] text-fg-muted hover:text-gold flex items-center gap-1 btn-press disabled:opacity-50"
+        >
+          <Archive size={11} /> ARQUIVAR
+        </button>
+      )}
+    </div>
+  );
+}
+
 function PreviousPlan({ plan }: { plan: WorkoutPlanResponse }) {
-  const groups = new Set<string>();
-  plan.days.forEach((d) => d.exercises.forEach(() => groups.add(d.name)));
   const label = plan.days.map((d) => d.name).slice(0, 2).join(" · ");
   return (
     <li className="rounded-lg bg-card p-3 flex items-center gap-3 border border-divider">
@@ -167,3 +206,4 @@ function PreviousPlan({ plan }: { plan: WorkoutPlanResponse }) {
     </li>
   );
 }
+
