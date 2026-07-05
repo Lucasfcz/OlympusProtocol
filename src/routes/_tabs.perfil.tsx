@@ -89,26 +89,7 @@ function Perfil() {
       {/* Treino ativo */}
       <p className="label-caps text-fg-muted text-[10px] mt-6">TREINO ATIVO</p>
       {active ? (
-        <div className="mt-2 rounded-lg bg-card p-4 border-2" style={{ borderColor: "#C9A24B" }}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <Check size={12} className="text-gold" strokeWidth={3} />
-              <span className="label-caps text-gold text-[10px]">ATIVO</span>
-            </div>
-            <span className="label-caps text-fg-muted text-[10px]">{fmtMonth(active.createdAt)}</span>
-          </div>
-          <h2 className="mt-2 text-xl font-bold">{active.name}</h2>
-          <p className="text-[11px] text-fg-muted mt-0.5 truncate">
-            {active.days.map((d) => d.name).join(" · ") || "—"}
-          </p>
-          <div className="mt-3 flex items-center gap-4 text-[11px] text-fg-muted">
-            <span>{Math.max(1, Math.round(active.days.length * 1.3))} semanas</span>
-            <span>·</span>
-            <span>{active.days.length}d/sem</span>
-            <span>·</span>
-            <span>{active.days.reduce((a, d) => a + d.exercises.length, 0)} exercícios</span>
-          </div>
-        </div>
+        <PlanCard plan={active} isActive />
       ) : (
         <div className="mt-2 rounded-lg bg-card p-4 text-center text-[12px] text-fg-muted border border-divider">
           Sem plano ativo no momento.
