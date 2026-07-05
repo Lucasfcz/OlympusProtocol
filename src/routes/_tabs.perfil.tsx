@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, Check, Sun, Moon, LogOut, Bell, Shield, Settings } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ChevronRight, Check, Sun, Moon, LogOut, Bell, Shield, Settings, Archive } from "lucide-react";
+import { toast } from "sonner";
 import { useTheme } from "@/lib/theme";
 import { useAuth } from "@/lib/auth";
 import { PlansAPI, StatsAPI, type WorkoutPlanResponse } from "@/lib/api";

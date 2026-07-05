@@ -16,6 +16,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as DiaRouteImport } from './routes/dia'
 import { Route as TabsRouteImport } from './routes/_tabs'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ResumoSessionIdRouteImport } from './routes/resumo.$sessionId'
 import { Route as TabsTreinosRouteImport } from './routes/_tabs.treinos'
 import { Route as TabsSocialRouteImport } from './routes/_tabs.social'
 import { Route as TabsPerfilRouteImport } from './routes/_tabs.perfil'
@@ -56,6 +57,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResumoSessionIdRoute = ResumoSessionIdRouteImport.update({
+  id: '/resumo/$sessionId',
+  path: '/resumo/$sessionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TabsTreinosRoute = TabsTreinosRouteImport.update({
   id: '/treinos',
   path: '/treinos',
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/perfil': typeof TabsPerfilRoute
   '/social': typeof TabsSocialRoute
   '/treinos': typeof TabsTreinosRoute
+  '/resumo/$sessionId': typeof ResumoSessionIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByTo {
   '/perfil': typeof TabsPerfilRoute
   '/social': typeof TabsSocialRoute
   '/treinos': typeof TabsTreinosRoute
+  '/resumo/$sessionId': typeof ResumoSessionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   '/_tabs/perfil': typeof TabsPerfilRoute
   '/_tabs/social': typeof TabsSocialRoute
   '/_tabs/treinos': typeof TabsTreinosRoute
+  '/resumo/$sessionId': typeof ResumoSessionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/social'
     | '/treinos'
+    | '/resumo/$sessionId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/social'
     | '/treinos'
+    | '/resumo/$sessionId'
   id:
     | '__root__'
     | '/'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/_tabs/perfil'
     | '/_tabs/social'
     | '/_tabs/treinos'
+    | '/resumo/$sessionId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -174,6 +186,7 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   SerieRoute: typeof SerieRoute
   TreinoRoute: typeof TreinoRoute
+  ResumoSessionIdRoute: typeof ResumoSessionIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -225,6 +238,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resumo/$sessionId': {
+      id: '/resumo/$sessionId'
+      path: '/resumo/$sessionId'
+      fullPath: '/resumo/$sessionId'
+      preLoaderRoute: typeof ResumoSessionIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_tabs/treinos': {
@@ -291,6 +311,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   SerieRoute: SerieRoute,
   TreinoRoute: TreinoRoute,
+  ResumoSessionIdRoute: ResumoSessionIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
