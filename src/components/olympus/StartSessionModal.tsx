@@ -4,7 +4,15 @@ import { Play, X, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { PlansAPI, SessionsAPI } from "@/lib/api";
 
-export function StartSessionModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function StartSessionModal({
+  open,
+  onClose,
+  onStarted,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onStarted?: () => void;
+}) {
   const navigate = useNavigate();
   const plans = useQuery({
     queryKey: ["plans", "modal"],
@@ -17,6 +25,7 @@ export function StartSessionModal({ open, onClose }: { open: boolean; onClose: (
   const startFree = useMutation({
     mutationFn: () => SessionsAPI.createFree(),
     onSuccess: (s) => {
+      onStarted?.();
       onClose();
       navigate({ to: "/treino", search: { sid: s.id } });
     },
@@ -27,6 +36,7 @@ export function StartSessionModal({ open, onClose }: { open: boolean; onClose: (
     mutationFn: (dayId: string) => SessionsAPI.createFromPlan(dayId),
     onSuccess: (s) => {
       s.warnings?.forEach((w) => toast.warning(w));
+      onStarted?.();
       onClose();
       navigate({ to: "/treino", search: { sid: s.id } });
     },
@@ -37,8 +47,8 @@ export function StartSessionModal({ open, onClose }: { open: boolean; onClose: (
   const busy = startFree.isPending || startFromDay.isPending;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-6" onClick={onClose}>
-      <div className="card p-5 w-full max-w-[360px] bg-card rounded-lg" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-end sm:items-center justify-center p-0 sm:p-6" onClick={onClose}>
+      <div className="card p-5 w-full sm:max-w-[380px] bg-card rounded-t-2xl sm:rounded-lg" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <p className="label-caps text-gold text-[11px]">INICIAR SESSÃO</p>
           <button onClick={onClose} className="btn-press text-fg-muted"><X size={18} /></button>

@@ -6,7 +6,8 @@ export const TOKEN_KEY = "olympus_token";
 
 // ---------- Types ----------
 export type ExperienceLevel = "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "EXPERT";
-export type Goal = "HYPERTROPHY" | "FAT_LOSS" | "STRENGTH" | "ENDURANCE";
+export type Goal = "HIPERTROFIA" | "FORCA" | "QUEIMA" | "RESISTENCIA";
+export type WorkoutGoal = Goal;
 export type MuscleGroup =
   | "CHEST" | "BACK" | "SHOULDERS" | "BICEPS" | "TRICEPS" | "FOREARMS"
   | "QUADRICEPS" | "HAMSTRINGS" | "GLUTES" | "CALVES" | "ABS";
@@ -256,6 +257,7 @@ export const SessionsAPI = {
   createFree: () => api.post<WorkoutSessionResponse>("/api/sessions/free"),
   createFromPlan: (workoutDayId: string) =>
     api.post<WorkoutSessionResponse>(`/api/sessions/from-plan/${workoutDayId}`),
+  active: () => api.get<WorkoutSessionResponse | null>("/api/sessions/active"),
   list: (page?: PageParams) => {
     const q = new URLSearchParams();
     appendPageParams(q, page);

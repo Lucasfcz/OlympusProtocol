@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, ClipboardList, TrendingUp, User, Play } from "lucide-react";
+import { Home, ClipboardList, TrendingUp, User, Play, Dumbbell } from "lucide-react";
 
 type Item = { to: "/home" | "/treinos" | "/evolucao" | "/perfil"; label: string; icon: typeof Home };
 
@@ -12,7 +12,13 @@ const right: Item[] = [
   { to: "/perfil", label: "Perfil", icon: User },
 ];
 
-export function BottomNav({ onStartPress }: { onStartPress: () => void }) {
+export function BottomNav({
+  onStartPress,
+  isActive = false,
+}: {
+  onStartPress: () => void;
+  isActive?: boolean;
+}) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
     <nav
@@ -23,16 +29,19 @@ export function BottomNav({ onStartPress }: { onStartPress: () => void }) {
         <NavLink key={it.to} item={it} active={pathname === it.to} />
       ))}
 
-      {/* Center action */}
       <div className="flex-1 flex flex-col items-center">
         <button
           onClick={onStartPress}
-          aria-label="Iniciar sessão"
-          className="btn-press -mt-8 w-14 h-14 rounded-full bg-gold text-obsidian flex items-center justify-center shadow-gold ring-4 ring-surface"
+          aria-label={isActive ? "Retomar sessão" : "Iniciar sessão"}
+          className={`btn-press -mt-8 w-14 h-14 rounded-full flex items-center justify-center shadow-gold ring-4 ring-surface ${
+            isActive ? "bg-gold text-obsidian animate-pulse" : "bg-gold text-obsidian"
+          }`}
         >
-          <Play size={22} fill="currentColor" />
+          {isActive ? <Dumbbell size={22} /> : <Play size={22} fill="currentColor" />}
         </button>
-        <span className="mt-1 text-[10px] tracking-wider text-fg-muted">Sessão</span>
+        <span className={`mt-1 text-[10px] tracking-wider ${isActive ? "text-gold font-medium" : "text-fg-muted"}`}>
+          {isActive ? "Sessão ativa" : "Sessão"}
+        </span>
       </div>
 
       {right.map((it) => (
