@@ -6,7 +6,8 @@ export const TOKEN_KEY = "olympus_token";
 
 // ---------- Types ----------
 export type ExperienceLevel = "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "EXPERT";
-export type Goal = "HYPERTROPHY" | "FAT_LOSS" | "STRENGTH" | "ENDURANCE";
+export type Goal = "HIPERTROFIA" | "FORCA" | "QUEIMA" | "RESISTENCIA";
+export type WorkoutGoal = Goal;
 export type MuscleGroup =
   | "CHEST" | "BACK" | "SHOULDERS" | "BICEPS" | "TRICEPS" | "FOREARMS"
   | "QUADRICEPS" | "HAMSTRINGS" | "GLUTES" | "CALVES" | "ABS";
