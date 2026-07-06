@@ -41,3 +41,7 @@ export function useActiveSession(): Ctx {
   if (!c) throw new Error("useActiveSession must be used within ActiveSessionProvider");
   return c;
 }
+
+export function useOptionalActiveSession(): Ctx | null {
+  return useContext(ActiveSessionCtx);
+}
