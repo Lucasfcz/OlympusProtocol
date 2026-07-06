@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { BottomNav } from "@/components/olympus/BottomNav";
 import { StartSessionModal } from "@/components/olympus/StartSessionModal";
 import { useAuth } from "@/lib/auth";
-import { ActiveSessionProvider, useActiveSession } from "@/lib/active-session";
+import { useActiveSession } from "@/lib/active-session";
 
 export const Route = createFileRoute("/_tabs")({
   component: TabsLayout,
@@ -25,11 +25,7 @@ function TabsLayout() {
     );
   }
 
-  return (
-    <ActiveSessionProvider>
-      <TabsShell />
-    </ActiveSessionProvider>
-  );
+  return <TabsShell />;
 }
 
 function TabsShell() {
