@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { PlansAPI, SessionsAPI } from "@/lib/api";
 import { ExercisePickerSheet } from "@/components/olympus/ExercisePickerSheet";
-import { useActiveSession } from "@/lib/active-session";
+import { useOptionalActiveSession } from "@/lib/active-session";
 
 export const Route = createFileRoute("/treino")({
   validateSearch: (s: Record<string, unknown>) => ({ sid: (s.sid as string) || "" }),
@@ -22,7 +22,7 @@ function WorkoutSession() {
   const { sid } = Route.useSearch();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { refresh: refreshActive } = useActiveSession();
+  const activeSession = useOptionalActiveSession();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [finishOpen, setFinishOpen] = useState(false);
 
@@ -182,7 +182,7 @@ function WorkoutSession() {
           sid={sid}
           onClose={() => setFinishOpen(false)}
           onDone={() => {
-            refreshActive();
+            void activeSession?.refresh();
             qc.invalidateQueries({ queryKey: ["sessions"] });
             qc.invalidateQueries({ queryKey: ["stats"] });
             navigate({ to: "/resumo/$sessionId", params: { sessionId: sid } });
