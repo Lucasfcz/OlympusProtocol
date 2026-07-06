@@ -25,11 +25,7 @@ function TabsLayout() {
     );
   }
 
-  return (
-    <ActiveSessionProvider>
-      <TabsShell />
-    </ActiveSessionProvider>
-  );
+  return <TabsShell />;
 }
 
 function TabsShell() {
