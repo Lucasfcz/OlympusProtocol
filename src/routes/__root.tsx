@@ -15,6 +15,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider, useTheme } from "../lib/theme";
 import { registerServiceWorker } from "../lib/pwa";
 import { AuthProvider } from "../lib/auth";
+import { ActiveSessionProvider } from "../lib/active-session";
 
 function NotFoundComponent() {
   return (
