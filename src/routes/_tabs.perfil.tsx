@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, Check, Sun, Moon, LogOut, Bell, Shield, Settings, Archive, Download, X, Share, Plus, Smartphone } from "lucide-react";
 import { toast } from "sonner";
@@ -362,7 +362,7 @@ function IphoneInstallPanel() {
   );
 }
 
-function InstallStep({ icon, text }: { icon: React.ReactNode; text: string }) {
+function InstallStep({ icon, text }: { icon: ReactNode; text: string }) {
   return (
     <div className="flex items-center gap-3 rounded-lg border border-divider bg-card p-3">
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-card-2 text-gold">
