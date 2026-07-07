@@ -1,37 +1,56 @@
-## Diagnóstico
+## Diagnóstico (importante ler antes)
 
-A implementação atual já moveu `ActiveSessionProvider` para `src/routes/__root.tsx`, envolvendo o `<Outlet />`. Porém o erro continua no bundle publicado ao abrir `/treino`, o que aponta para um problema de hierarquia/escopo em tempo de renderização: a rota `/treino` chama `useActiveSession()` diretamente e qualquer carregamento que não passe pelo layout esperado explode antes da tela conseguir renderizar.
+O service worker **já está totalmente configurado** neste projeto — não falta nada para ser gerado:
 
-Também confirmei que os usos atuais do hook são apenas:
-- `/_tabs` / barra inferior
-- `/_tabs/treinos`
-- `/treino`
+- `vite-plugin-pwa` está instalado e configurado em `vite.config.ts` com `filename: "sw.js"`, `registerType: "autoUpdate"`, estratégia `NetworkFirst` para navegação, `CacheFirst` para assets, e `NetworkOnly` para a API do Render.
+- O manifest está correto (`name`, `start_url`, `display: standalone`, ícones 192/512/maskable).
+- O registro do SW é feito por `src/lib/pwa.ts` (`registerServiceWorker()`), chamado em `src/routes/__root.tsx`.
 
-Não há evidência no código de modal, portal ou rota paralela renderizando `/treino` fora do provider. O ponto frágil é a dependência rígida de `/treino` no contexto global para executar apenas `refresh()` ao finalizar.
+**Por que o DevTools mostra "nenhum service worker" agora:** você está testando na URL do preview do Lovable (`id-preview--…lovable.app`). O wrapper `src/lib/pwa.ts` — seguindo a regra obrigatória da plataforma — **bloqueia o registro do SW em host de preview, iframe e dev**, e ainda desregistra qualquer SW antigo nesses contextos. Isso é intencional: um SW no preview servia HTML antigo depois de edições e travava o preview em telas brancas.
 
-## Plano de correção
+O SW só é registrado na URL **publicada** (`*.lovable.app` de produção ou domínio custom). Portanto o app **já é instalável** — só não no preview.
 
-1. **Manter o provider no nível raiz**
-   - Preservar `ActiveSessionProvider` em `src/routes/__root.tsx`, dentro de `AuthProvider` e acima do `<Outlet />`, para que todas as rotas tenham contexto desde entrada direta por URL.
+Não vou criar um `public/sw.js` manual: isso conflita com o `sw.js` gerado pelo `vite-plugin-pwa` (mesmo path) e a skill de PWA proíbe SW hand-written em cima do plugin. A configuração atual já faz exatamente o que você pediu (cache de assets + navegação network-first).
 
-2. **Remover a dependência obrigatória da rota `/treino`**
-   - Em `src/routes/treino.tsx`, substituir o uso direto de `useActiveSession()` por uma forma segura/fallback.
-   - A tela de treino não precisa do estado ativo para renderizar; ela só precisa atualizar o estado global ao finalizar.
-   - Se o contexto existir, chama `refresh()`; se não existir, invalida/refaz as queries relevantes sem quebrar a página.
+## Como validar que está ativado
 
-3. **Expor um hook seguro no contexto**
-   - Em `src/lib/active-session.tsx`, adicionar um hook opcional como `useOptionalActiveSession()` que retorna `null` quando não há provider.
-   - Manter `useActiveSession()` estrito para telas que realmente devem falhar se usadas fora do provider.
+1. Publicar o app (botão Publish) ou abrir a URL publicada existente.
+2. Abrir a URL publicada em aba anônima → DevTools → Application → Service Workers.
+3. Deve aparecer `sw.js` com status **"activated and is running"** e o ícone de "Install app" na barra do Chrome.
 
-4. **Conferir a navegação de sessão**
-   - Verificar o botão “Iniciar/Continuar sessão” na barra inferior: ele continua dentro de `/_tabs`, que está coberto pelo provider raiz.
-   - `StartSessionModal` não usa o contexto diretamente e não renderiza `/treino` fora da árvore; apenas navega para `/treino?sid=...`.
+Se mesmo na URL publicada não aparecer, aí sim tem bug — me avise e eu investigo (provavelmente cache do navegador antigo; `?sw=off` limpa).
 
-5. **Validar entrada direta**
-   - Testar `/treino?sid=...` diretamente no navegador/preview.
-   - Confirmar que a rota não dispara mais `useActiveSession must be used within ActiveSessionProvider`.
-   - Confirmar que clicar em “Iniciar/Continuar sessão” também navega sem erro.
+## Trocar o logo pelo `Olympus_Protocol_logo.png` enviado
 
-## Resultado esperado
+O arquivo é quadrado, preto com o templo/louros dourados — perfeito para app icon. Ele substitui **os PNGs do PWA e o favicon**, todos gerados a partir do mesmo master.
 
-`/treino` deixa de quebrar por ausência de contexto, tanto via clique quanto via URL direta, e o provider raiz continua sendo a fonte global para barra inferior e telas dentro das abas.
+Passos (modo build):
+
+1. Copiar `user-uploads://Olympus_Protocol_logo.png` para `/tmp/logo-master.png`.
+2. Gerar via `sharp`/ImageMagick (ou script Python com PIL) as versões:
+   - `public/icon-192.png` (192×192, `purpose: any`) — sobrescreve.
+   - `public/icon-512.png` (512×512, `purpose: any`) — sobrescreve.
+   - `public/icon-512-maskable.png` (512×512, com safe-zone: logo reduzido a ~80% centralizado sobre fundo preto para o recorte maskable não cortar as colunas/louros) — sobrescreve.
+   - `public/apple-touch-icon.png` (180×180) — sobrescreve.
+   - `public/favicon.png` (32×32 nítido) — sobrescreve.
+3. Remover o `public/favicon.ico` legado (`rm public/favicon.ico`) para o navegador parar de servir o ícone padrão da Lovable a crawlers que ignoram o `<link>`.
+4. Confirmar em `src/routes/__root.tsx` que o `head().links` já referencia `/favicon.png` e `/apple-touch-icon.png` (ajustar se estiver apontando para `.ico`).
+5. Nenhuma mudança no `vite.config.ts` é necessária — `includeAssets` já lista esses arquivos.
+
+Depois de publicar, o ícone novo aparece:
+- na aba do navegador (favicon),
+- no prompt "Add to Home Screen" (icon-192/512),
+- na home screen do celular (maskable).
+
+## O que **não** vou fazer
+
+- Criar `public/sw.js` manual (conflita com o gerado pelo plugin).
+- Remover as guardas de preview em `src/lib/pwa.ts` (regra de plataforma — quebra o preview).
+- Mexer em qualquer código de treinos/sessão/UI.
+
+## Precisa de algo a mais de você?
+
+Não. A imagem enviada basta. Confirme que posso prosseguir e eu:
+1. gero todos os ícones a partir do PNG enviado,
+2. removo o `favicon.ico` antigo,
+3. deixo pronto para publicar. Aí você abre a URL publicada e o SW aparece "activated and running".
