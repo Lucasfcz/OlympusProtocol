@@ -16,6 +16,7 @@ import { ThemeProvider, useTheme } from "../lib/theme";
 import { registerServiceWorker } from "../lib/pwa";
 import { AuthProvider } from "../lib/auth";
 import { ActiveSessionProvider } from "../lib/active-session";
+import { PwaInstallProvider } from "../lib/pwa-install";
 
 function NotFoundComponent() {
   return (
@@ -109,14 +110,16 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <ActiveSessionProvider>
-            <ThemedFrame>
-              <Outlet />
-              <Toaster theme="dark" position="top-center" toastOptions={{
-                style: { background: "#1E1E1E", color: "#fff", border: "1px solid rgba(200,164,106,0.25)" }
-              }} />
-            </ThemedFrame>
-          </ActiveSessionProvider>
+          <PwaInstallProvider>
+            <ActiveSessionProvider>
+              <ThemedFrame>
+                <Outlet />
+                <Toaster theme="dark" position="top-center" toastOptions={{
+                  style: { background: "#1E1E1E", color: "#fff", border: "1px solid rgba(200,164,106,0.25)" }
+                }} />
+              </ThemedFrame>
+            </ActiveSessionProvider>
+          </PwaInstallProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
