@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronRight, Check, Sun, Moon, LogOut, Bell, Shield, Settings, Archive } from "lucide-react";
+import { ChevronRight, Check, Sun, Moon, LogOut, Bell, Shield, Settings, Archive, Download, X, Share, Plus, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { useTheme } from "@/lib/theme";
 import { useAuth } from "@/lib/auth";
 import { PlansAPI, StatsAPI, type WorkoutPlanResponse } from "@/lib/api";
+import { usePwaInstall } from "@/lib/pwa-install";
 
 export const Route = createFileRoute("/_tabs/perfil")({
   head: () => ({
@@ -47,12 +49,31 @@ function fmtHours(min: number) {
 function Perfil() {
   const { theme, toggle } = useTheme();
   const { user, logout } = useAuth();
+  const { installPromptAvailable, isInstalled, platform, promptInstall } = usePwaInstall();
+  const [installOpen, setInstallOpen] = useState(false);
+  const [installTab, setInstallTab] = useState<"android" | "ios">("android");
+  const [installStatus, setInstallStatus] = useState<"idle" | "prompting" | "accepted" | "dismissed" | "unavailable">("idle");
   const stats = useQuery({ queryKey: ["stats", "me"], queryFn: StatsAPI.me });
   const plans = useQuery({ queryKey: ["plans", "perfil"], queryFn: () => PlansAPI.list({ page: 0, size: 20 }) });
 
   const list = plans.data?.content ?? [];
   const active = list.find((p) => p.active);
   const previous = list.filter((p) => !p.active);
+
+  const openInstallModal = () => {
+    if (isInstalled) return;
+    setInstallStatus("idle");
+    setInstallTab(platform === "ios" ? "ios" : "android");
+    setInstallOpen(true);
+  };
+
+  const handlePromptInstall = async () => {
+    if (!installPromptAvailable) return;
+    setInstallStatus("prompting");
+    const outcome = await promptInstall();
+    setInstallStatus(outcome);
+    if (outcome === "accepted") toast.success("Instalação iniciada.");
+  };
 
   return (
     <div className="bg-surface text-fg anim-fade px-5 pt-6 pb-6">
@@ -113,6 +134,13 @@ function Perfil() {
           <span className="flex-1 text-sm">Tema</span>
           <span className="text-[11px] text-fg-muted capitalize">{theme === "dark" ? "Escuro" : "Claro"}</span>
         </li>
+        {!isInstalled && (
+          <li onClick={openInstallModal} className="flex items-center gap-3 px-4 py-3.5 btn-press cursor-pointer">
+            <Download size={18} className="text-gold" strokeWidth={1.6} />
+            <span className="flex-1 text-sm">Baixar app</span>
+            <ChevronRight size={16} className="text-fg-muted" />
+          </li>
+        )}
         {[
           { label: "Notificações", icon: Bell },
           { label: "Privacidade", icon: Shield },
@@ -134,6 +162,20 @@ function Perfil() {
       <p className="mt-6 text-center label-caps text-fg-muted/60 text-[10px]">
         OLYMPUS PROTOCOL · V1.0
       </p>
+
+      {installOpen && !isInstalled && (
+        <InstallAppModal
+          activeTab={installTab}
+          installPromptAvailable={installPromptAvailable}
+          installStatus={installStatus}
+          onClose={() => setInstallOpen(false)}
+          onPromptInstall={handlePromptInstall}
+          onTabChange={(tab) => {
+            setInstallStatus("idle");
+            setInstallTab(tab);
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -204,6 +246,140 @@ function PreviousPlan({ plan }: { plan: WorkoutPlanResponse }) {
         <div className="text-[11px] text-fg-muted mt-0.5">{plan.days.length}d</div>
       </div>
     </li>
+  );
+}
+
+function InstallAppModal({
+  activeTab,
+  installPromptAvailable,
+  installStatus,
+  onClose,
+  onPromptInstall,
+  onTabChange,
+}: {
+  activeTab: "android" | "ios";
+  installPromptAvailable: boolean;
+  installStatus: "idle" | "prompting" | "accepted" | "dismissed" | "unavailable";
+  onClose: () => void;
+  onPromptInstall: () => void;
+  onTabChange: (tab: "android" | "ios") => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-obsidian/80 px-4 pb-4 pt-10 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="install-title">
+      <div className="w-full max-w-[420px] rounded-lg border border-divider bg-surface shadow-gold">
+        <div className="flex items-start justify-between gap-4 border-b border-divider px-5 py-4">
+          <div>
+            <p className="label-caps text-gold text-[10px]">OLYMPUS PROTOCOL</p>
+            <h2 id="install-title" className="mt-1 text-xl font-bold">Baixar app</h2>
+          </div>
+          <button onClick={onClose} aria-label="Fechar" className="btn-press rounded-full border border-divider p-2 text-fg-muted">
+            <X size={16} />
+          </button>
+        </div>
+
+        <div className="px-5 py-4">
+          <div className="grid grid-cols-2 gap-2 rounded-lg bg-card-2 p-1">
+            <button
+              onClick={() => onTabChange("android")}
+              className={`rounded-md px-3 py-2 text-sm font-semibold btn-press ${activeTab === "android" ? "bg-gold text-obsidian" : "text-fg-muted"}`}
+            >
+              Android
+            </button>
+            <button
+              onClick={() => onTabChange("ios")}
+              className={`rounded-md px-3 py-2 text-sm font-semibold btn-press ${activeTab === "ios" ? "bg-gold text-obsidian" : "text-fg-muted"}`}
+            >
+              iPhone
+            </button>
+          </div>
+
+          {activeTab === "android" ? (
+            <AndroidInstallPanel
+              installPromptAvailable={installPromptAvailable}
+              installStatus={installStatus}
+              onPromptInstall={onPromptInstall}
+            />
+          ) : (
+            <IphoneInstallPanel />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AndroidInstallPanel({
+  installPromptAvailable,
+  installStatus,
+  onPromptInstall,
+}: {
+  installPromptAvailable: boolean;
+  installStatus: "idle" | "prompting" | "accepted" | "dismissed" | "unavailable";
+  onPromptInstall: () => void;
+}) {
+  const unavailable = !installPromptAvailable || installStatus === "dismissed" || installStatus === "unavailable";
+
+  return (
+    <div className="pt-5">
+      <div className="flex items-center gap-3">
+        <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-gold/30 bg-card text-gold">
+          <Smartphone size={20} />
+        </div>
+        <div>
+          <h3 className="font-semibold">Android</h3>
+          <p className="text-[12px] text-fg-muted">Instale o Olympus na tela inicial.</p>
+        </div>
+      </div>
+
+      {installPromptAvailable && installStatus !== "dismissed" && installStatus !== "unavailable" ? (
+        <button
+          onClick={onPromptInstall}
+          disabled={installStatus === "prompting"}
+          className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-gold px-4 py-3 label-caps text-obsidian btn-press disabled:opacity-60"
+        >
+          <Download size={16} />
+          {installStatus === "prompting" ? "Abrindo..." : "Baixar aqui"}
+        </button>
+      ) : null}
+
+      {unavailable && (
+        <div className="mt-5 rounded-lg border border-divider bg-card p-4 text-sm text-fg-muted">
+          <p className="font-medium text-fg">Instalação não disponível neste navegador.</p>
+          <p className="mt-2 text-[12px] leading-5">Use o menu do navegador: ⋮ → Adicionar à tela inicial.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function IphoneInstallPanel() {
+  return (
+    <div className="space-y-3 pt-5">
+      <InstallStep icon={<SafariShareIcon />} text="Toque no ícone de Compartilhar (□ com seta pra cima) na barra do Safari." />
+      <InstallStep icon={<Share size={18} />} text="Role e toque em ‘Adicionar à Tela de Início’." />
+      <InstallStep icon={<Plus size={18} />} text="Toque em ‘Adicionar’." />
+    </div>
+  );
+}
+
+function InstallStep({ icon, text }: { icon: ReactNode; text: string }) {
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-divider bg-card p-3">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-card-2 text-gold">
+        {icon}
+      </div>
+      <p className="text-sm leading-5 text-fg-muted">{text}</p>
+    </div>
+  );
+}
+
+function SafariShareIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 14V3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M8.25 6.75 12 3l3.75 3.75" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M7 10H5.8A1.8 1.8 0 0 0 4 11.8v7.4A1.8 1.8 0 0 0 5.8 21h12.4a1.8 1.8 0 0 0 1.8-1.8v-7.4a1.8 1.8 0 0 0-1.8-1.8H17" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
   );
 }
 
