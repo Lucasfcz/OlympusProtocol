@@ -33,7 +33,7 @@ const goals: { value: Goal; label: string }[] = [
   { value: "HYPERTROPHY", label: "Hipertrofia" },
   { value: "STRENGTH", label: "Força" },
   { value: "FAT_LOSS", label: "Perda de peso" },
-  { value: "RESISTENCE", label: "Resistência" },
+  { value: "ENDURANCE", label: "Resistência" },
 ];
 
 const goalLabel = (g?: Goal) => goals.find((x) => x.value === g)?.label ?? "—";
