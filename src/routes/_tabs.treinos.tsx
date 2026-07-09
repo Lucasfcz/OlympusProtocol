@@ -30,10 +30,10 @@ export const Route = createFileRoute("/_tabs/treinos")({
 });
 
 const goals: { value: Goal; label: string }[] = [
-  { value: "HIPERTROFIA", label: "Hipertrofia" },
-  { value: "FORCA", label: "Força" },
-  { value: "QUEIMA", label: "Queima" },
-  { value: "RESISTENCIA", label: "Resistência" },
+  { value: "HYPERTROPHY", label: "Hipertrofia" },
+  { value: "STRENGTH", label: "Força" },
+  { value: "FAT_LOSS", label: "Perda de peso" },
+  { value: "RESISTENCE", label: "Resistência" },
 ];
 
 const goalLabel = (g?: Goal) => goals.find((x) => x.value === g)?.label ?? "—";
@@ -241,7 +241,7 @@ function Treinos() {
 function CreatePlanWizard({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
   const [step, setStep] = useState<1 | 2>(1);
   const [name, setName] = useState("");
-  const [goal, setGoal] = useState<Goal>("HIPERTROFIA");
+  const [goal, setGoal] = useState<Goal>("HYPERTROPHY");
   const [dayName, setDayName] = useState("");
   const [plan, setPlan] = useState<WorkoutPlanResponse | null>(null);
 
