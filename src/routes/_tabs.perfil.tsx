@@ -265,8 +265,8 @@ function InstallAppModal({
   onTabChange: (tab: "android" | "ios") => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-obsidian/80 px-4 pb-4 pt-10 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="install-title">
-      <div className="w-full max-w-[420px] rounded-lg border border-divider bg-surface shadow-gold">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-obsidian/80 p-4 backdrop-blur-sm" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="install-title" >
+      <div className="w-full max-w-[420px] max-h-[90vh] overflow-y-auto rounded-lg border border-divider bg-surface shadow-gold" onClick={(e) => e.stopPropagation()} >
         <div className="flex items-start justify-between gap-4 border-b border-divider px-5 py-4">
           <div>
             <p className="label-caps text-gold text-[10px]">OLYMPUS PROTOCOL</p>
