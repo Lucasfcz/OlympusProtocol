@@ -54,7 +54,7 @@ export function ExercisePickerSheet({
     setGroups((prev) => (prev.includes(g) ? prev.filter((x) => x !== g) : [...prev, g]));
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-end sm:items-center justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={onClose}>
       <div
         className="w-full sm:max-w-[400px] max-h-[85vh] rounded-t-2xl sm:rounded-lg bg-card border border-gold/30 flex flex-col"
         onClick={(e) => e.stopPropagation()}
