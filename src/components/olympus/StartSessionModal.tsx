@@ -47,8 +47,8 @@ export function StartSessionModal({
   const busy = startFree.isPending || startFromDay.isPending;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-end sm:items-center justify-center p-0 sm:p-6" onClick={onClose}>
-      <div className="card p-5 w-full sm:max-w-[380px] bg-card rounded-t-2xl sm:rounded-lg" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="card w-full max-w-[380px] max-h-[90vh] overflow-y-auto bg-card rounded-xl p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <p className="label-caps text-gold text-[11px]">INICIAR SESSÃO</p>
           <button onClick={onClose} className="btn-press text-fg-muted"><X size={18} /></button>
@@ -73,7 +73,7 @@ export function StartSessionModal({
           {activePlan ? `PLANO ATIVO · ${activePlan.name}` : plans.isLoading ? "CARREGANDO…" : "SEM PLANO ATIVO"}
         </p>
 
-        <ul className="space-y-2 max-h-[280px] overflow-y-auto olympus-scroll">
+        <ul className="space-y-2 max-h-[50vh] overflow-y-auto olympus-scroll">
           {days.map((d) => (
             <li key={d.id} className="rounded-lg border border-divider bg-card-2 p-3 flex items-center gap-3">
               <div className="label-caps text-[10px] text-gold w-8">D{d.dayOrder}</div>
