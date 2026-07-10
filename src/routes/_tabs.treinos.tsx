@@ -355,7 +355,7 @@ function AddDayDialog({
 }: { onClose: () => void; onSubmit: (name: string) => void; busy: boolean }) {
   const [name, setName] = useState("");
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-end sm:items-center justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={onClose} >
       <div
         className="w-full max-w-[380px] max-h-[90vh] overflow-y-auto rounded-xl bg-card border border-gold/30 p-5"
         onClick={(e) => e.stopPropagation()}
