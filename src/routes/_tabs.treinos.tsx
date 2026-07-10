@@ -357,7 +357,7 @@ function AddDayDialog({
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-end sm:items-center justify-center" onClick={onClose}>
       <div
-        className="w-full sm:max-w-[380px] rounded-t-2xl sm:rounded-lg bg-card border border-gold/30 p-5"
+        className="w-full max-w-[380px] max-h-[90vh] overflow-y-auto rounded-xl bg-card border border-gold/30 p-5"
         onClick={(e) => e.stopPropagation()}
       >
         <p className="label-caps text-gold text-[11px]">NOVO DIA</p>
@@ -644,7 +644,7 @@ function EditExerciseDialog({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-end sm:items-center justify-center" onClick={onClose}>
-      <div className="w-full sm:max-w-[380px] rounded-t-2xl sm:rounded-lg bg-card border border-gold/30 p-5"
+      <div className="w-full max-w-[380px] max-h-[90vh] overflow-y-auto rounded-xl bg-card border border-gold/30 p-5"
         onClick={(e) => e.stopPropagation()}>
         <p className="label-caps text-gold text-[11px]">EDITAR EXERCÍCIO</p>
         <h3 className="mt-1 text-lg font-semibold truncate">{ex.exerciseName}</h3>
