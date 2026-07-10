@@ -206,7 +206,7 @@ function FinishDialog({
     onError: (e: Error) => toast.error(e.message),
   });
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-end sm:items-center justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={onClose}>
       <div className="w-full sm:max-w-[380px] rounded-t-2xl sm:rounded-lg bg-card border border-gold/30 p-5"
         onClick={(e) => e.stopPropagation()}>
         <p className="label-caps text-gold text-[11px]">FINALIZAR TREINO</p>
