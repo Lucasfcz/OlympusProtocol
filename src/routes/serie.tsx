@@ -44,45 +44,80 @@ function SetLog() {
   const expectedTotal = planDay?.exercises.find((e) => e.exerciseId === sessionEx?.exerciseId)?.sets;
 
   const sortedSets = sessionEx?.sets.slice().sort((a, b) => a.setOrder - b.setOrder) ?? [];
+  const completedSets = sortedSets.filter((set) => set.isCompleted);
+  const pendingSets = sortedSets.filter((set) => !set.isCompleted);
+  const activeSet = pendingSets[0] ?? null;
+  const completedCount = completedSets.length;
   const nextOrder = sortedSets.length + 1;
-  const totalDisplay = expectedTotal ?? Math.max(sortedSets.length, nextOrder);
+  const totalDisplay = expectedTotal ?? Math.max(sortedSets.length, activeSet?.setOrder ?? nextOrder);
+  const displayOrder = activeSet?.setOrder ?? nextOrder;
 
   // Pré-preencher com última série
   useEffect(() => {
-    const last = sortedSets[sortedSets.length - 1];
+    const last = completedSets[completedSets.length - 1] ?? sortedSets[sortedSets.length - 1];
     if (last) {
       setKg(last.weight ?? 0);
-      setReps(last.reps);
+      setReps(last.reps ?? 8);
       setRest(last.restTime ?? 90);
       if (last.rpe != null) setRpe(last.rpe);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionEx?.id]);
+  }, [sessionEx?.id, completedCount]);
 
-  const saveSet = useMutation({
-    mutationFn: async () => {
-      const updatedSession = await SessionsAPI.addSet(sid, seid, {
+  const addExtraSet = useMutation({
+    mutationFn: () =>
+      SessionsAPI.addSet(sid, seid, {
         setOrder: nextOrder,
         reps,
         weight: kg > 0 ? kg : undefined,
         restTime: rest,
         rpe: rpe ?? undefined,
-      });
-      const updatedExercise = updatedSession.sessionExercises.find((exercise) => exercise.id === seid);
-      const createdSet = updatedExercise?.sets
-        .slice()
-        .sort((a, b) => a.setOrder - b.setOrder)
-        .find((set) => set.setOrder === nextOrder)
-        ?? updatedExercise?.sets.slice().sort((a, b) => a.setOrder - b.setOrder).at(-1);
+      }),
+    onSuccess: () => {
+      toast.success(`Série ${nextOrder} adicionada`);
+      qc.invalidateQueries({ queryKey: ["session", sid] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
-      if (!createdSet) {
-        throw new Error("Não foi possível identificar a série salva.");
+  const completeSet = useMutation({
+    mutationFn: async () => {
+      let setToComplete = activeSet;
+
+      if (!setToComplete && !session?.workoutDayId) {
+        const updatedSession = await SessionsAPI.addSet(sid, seid, {
+          setOrder: nextOrder,
+          reps,
+          weight: kg > 0 ? kg : undefined,
+          restTime: rest,
+          rpe: rpe ?? undefined,
+        });
+
+        const updatedExercise = updatedSession.sessionExercises.find((exercise) => exercise.id === seid);
+        setToComplete = updatedExercise?.sets
+          .slice()
+          .sort((a, b) => a.setOrder - b.setOrder)
+          .find((set) => !set.isCompleted && set.setOrder === nextOrder)
+          ?? updatedExercise?.sets.slice().sort((a, b) => a.setOrder - b.setOrder).at(-1)
+          ?? null;
       }
 
-      return SessionsAPI.finishSet(sid, createdSet.id);
+      if (!setToComplete) {
+        throw new Error("Todas as séries previstas já foram concluídas. Use + para adicionar uma série extra.");
+      }
+
+      const updatedSet = await SessionsAPI.updateSet(sid, setToComplete.id, {
+        setOrder: setToComplete.setOrder,
+        reps,
+        weight: kg > 0 ? kg : undefined,
+        restTime: rest,
+        rpe: rpe ?? undefined,
+      });
+
+      return SessionsAPI.finishSet(sid, updatedSet.id);
     },
     onSuccess: (set) => {
-      toast.success(`Série ${set.setOrder} salva`);
+      toast.success(`Série ${set.setOrder} concluída`);
       qc.invalidateQueries({ queryKey: ["session", sid] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -113,7 +148,7 @@ function SetLog() {
         <button onClick={() => navigate({ to: "/treino", search: { sid } })} className="btn-press">
           <ArrowLeft size={22} strokeWidth={1.6} />
         </button>
-        <p className="label-caps-lg text-[12px]">SÉRIE {nextOrder} DE {totalDisplay}</p>
+        <p className="label-caps-lg text-[12px]">SÉRIE {displayOrder} DE {totalDisplay}</p>
         <span className="w-6" />
       </header>
 
@@ -124,8 +159,8 @@ function SetLog() {
           {/* Barra segmentada */}
           <div className="mt-4 flex gap-1 h-2">
             {Array.from({ length: totalDisplay }).map((_, i) => {
-              const done = i < sortedSets.length;
-              const current = i === sortedSets.length;
+              const done = i < completedCount;
+              const current = i === completedCount;
               return (
                 <div key={i}
                   className={`flex-1 rounded-full ${
@@ -137,7 +172,7 @@ function SetLog() {
         </section>
 
         <section className="px-5 mt-7 grid grid-cols-2 gap-3">
-          <Stepper label="CARGA" value={kg} unit="kg" step={2.5} onChange={setKg} />
+          <Stepper label="CARGA" value={kg} unit="kg" step={2.5} onChange={setKg} allowTyping />
           <Stepper label="REPETIÇÕES" value={reps} unit="reps" step={1} onChange={setReps} />
         </section>
 
@@ -160,7 +195,14 @@ function SetLog() {
             <section className="px-5 mt-5">
               <p className="label-caps text-fg-muted">RPE</p>
               <div className="mt-2 flex items-end gap-3">
-                <div className="text-4xl font-bold leading-none">{rpe ?? "—"}</div>
+                <InlineNumberInput
+                  value={rpe}
+                  onChange={(v) => setRpe(v)}
+                  min={0}
+                  max={10}
+                  step={1}
+                  placeholder="—"
+                />
                 <p className="text-xs text-fg-muted pb-1.5">Percepção de esforço</p>
               </div>
               <div className="mt-3 flex gap-1 h-3">
@@ -179,10 +221,17 @@ function SetLog() {
 
         <div className="px-5 mt-7">
           <button
-            onClick={() => saveSet.mutate()}
-            disabled={saveSet.isPending}
+            onClick={() => completeSet.mutate()}
+            disabled={completeSet.isPending}
             className="w-full rounded-lg bg-gold text-obsidian py-4 label-caps-lg text-[12px] btn-press shadow-gold disabled:opacity-60">
-            {saveSet.isPending ? "..." : "SALVAR SÉRIE"}
+            {completeSet.isPending ? "..." : "COMPLETAR SÉRIE"}
+          </button>
+          <button
+            onClick={() => addExtraSet.mutate()}
+            disabled={addExtraSet.isPending}
+            className="mt-2 w-full rounded-lg border border-gold/40 bg-card/60 text-gold py-3 label-caps text-[11px] btn-press disabled:opacity-60 flex items-center justify-center gap-1"
+          >
+            <Plus size={13} /> {addExtraSet.isPending ? "..." : "ADICIONAR SÉRIE EXTRA"}
           </button>
         </div>
 
@@ -196,7 +245,7 @@ function SetLog() {
                 {sortedSets.map((s) => (
                   <li key={s.id} className="grid grid-cols-5 items-center py-2.5 text-sm gap-2">
                     <span className="text-fg-muted text-[11px]">{s.setOrder}ª</span>
-                    <span className="tabular-nums">{s.reps} reps</span>
+                    <span className="tabular-nums">{s.reps ?? "—"} reps</span>
                     <span className="tabular-nums">{s.weight ?? 0} kg</span>
                     <span className="text-right text-gold text-[11px]">RPE {s.rpe ?? "—"}</span>
                     <button
@@ -218,7 +267,32 @@ function SetLog() {
 }
 
 function Stepper({ label, value, unit, step, onChange }:
-  { label: string; value: number; unit: string; step: number; onChange: (n: number) => void }) {
+  {
+    label: string;
+    value: number;
+    unit: string;
+    step: number;
+    onChange: (n: number) => void;
+    allowTyping?: boolean;
+  }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(String(value));
+
+  useEffect(() => {
+    if (!editing) setDraft(String(value));
+  }, [value, editing]);
+
+  const commitDraft = () => {
+    const parsed = Number(draft.replace(",", "."));
+    if (!Number.isFinite(parsed)) {
+      setDraft(String(value));
+      setEditing(false);
+      return;
+    }
+    onChange(Math.max(0, +parsed.toFixed(2)));
+    setEditing(false);
+  };
+
   return (
     <div>
       <p className="label-caps text-fg-muted">{label}</p>
@@ -228,7 +302,31 @@ function Stepper({ label, value, unit, step, onChange }:
           <Minus size={16} strokeWidth={2} />
         </button>
         <div className="flex-1 text-center">
-          <span className="text-2xl font-bold">{value}</span>
+          {allowTyping && editing ? (
+            <input
+              autoFocus
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={commitDraft}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") commitDraft();
+                if (e.key === "Escape") {
+                  setDraft(String(value));
+                  setEditing(false);
+                }
+              }}
+              inputMode="decimal"
+              className="w-20 bg-transparent text-center text-2xl font-bold border-b border-gold/40 focus:outline-none"
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => allowTyping && setEditing(true)}
+              className="text-2xl font-bold"
+            >
+              {value}
+            </button>
+          )}
           <span className="text-xs text-fg-muted ml-1">{unit}</span>
         </div>
         <button onClick={() => onChange(+(value + step).toFixed(2))}
@@ -237,5 +335,71 @@ function Stepper({ label, value, unit, step, onChange }:
         </button>
       </div>
     </div>
+  );
+}
+
+function InlineNumberInput({
+  value,
+  onChange,
+  min,
+  max,
+  step,
+  placeholder,
+}: {
+  value: number | null;
+  onChange: (value: number | null) => void;
+  min: number;
+  max: number;
+  step: number;
+  placeholder: string;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value == null ? "" : String(value));
+
+  useEffect(() => {
+    if (!editing) setDraft(value == null ? "" : String(value));
+  }, [value, editing]);
+
+  const commit = () => {
+    if (!draft.trim()) {
+      onChange(null);
+      setEditing(false);
+      return;
+    }
+    const parsed = Number(draft.replace(",", "."));
+    if (!Number.isFinite(parsed)) {
+      setDraft(value == null ? "" : String(value));
+      setEditing(false);
+      return;
+    }
+    const normalized = Math.max(min, Math.min(max, Math.round(parsed / step) * step));
+    onChange(normalized);
+    setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <input
+        autoFocus
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") commit();
+          if (e.key === "Escape") {
+            setDraft(value == null ? "" : String(value));
+            setEditing(false);
+          }
+        }}
+        inputMode="decimal"
+        className="w-20 bg-transparent border-b border-gold/40 text-4xl font-bold leading-none focus:outline-none"
+      />
+    );
+  }
+
+  return (
+    <button type="button" onClick={() => setEditing(true)} className="text-4xl font-bold leading-none">
+      {value ?? placeholder}
+    </button>
   );
 }

@@ -53,8 +53,9 @@ export type ExerciseResponse = {
 
 export type WorkoutSessionSetResponse = {
   id: string; sessionExerciseId: string; setOrder: number;
-  reps: number; weight?: number | null; restTime?: number | null; rpe?: number | null;
+  reps?: number | null; weight?: number | null; restTime?: number | null; rpe?: number | null;
   musclesVolumes?: { muscleGroup: MuscleGroup; totalVolume: number }[];
+  isCompleted: boolean;
 };
 export type SessionSet = WorkoutSessionSetResponse;
 export type SessionExercise = {
@@ -277,7 +278,7 @@ export const SessionsAPI = {
     d: { setOrder: number; reps: number; weight?: number; restTime: number; rpe?: number }) =>
     api.post<WorkoutSessionResponse>(`/api/sessions/${sessionId}/exercises/${sessionExerciseId}/sets`, d),
   updateSet: (sessionId: string, setId: string,
-    d: { setOrder: number; reps: number; weight: number; restTime: number; rpe: number }) =>
+    d: { setOrder: number; reps: number; weight?: number; restTime: number; rpe?: number }) =>
     api.put<WorkoutSessionSetResponse>(`/api/sessions/${sessionId}/exercises/sets/${setId}`, d),
   finishSet: (sessionId: string, setId: string) =>
     api.patch<WorkoutSessionSetResponse>(`/api/sessions/${sessionId}/sets/${setId}/finish`),

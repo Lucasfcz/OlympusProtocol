@@ -76,11 +76,13 @@ function WorkoutSession() {
 
   const isFree = !session.workoutDayId;
   const exercises = session.sessionExercises.slice().sort((a, b) => a.exerciseOrder - b.exerciseOrder);
+  const completedSetsCount = (sets: { isCompleted: boolean }[]) => sets.filter((set) => set.isCompleted).length;
 
   // Completude
   const completedCount = exercises.filter((ex) => {
     const expected = expectedSetsByExId.get(ex.exerciseId);
-    return expected ? ex.sets.length >= expected : ex.sets.length > 0;
+    const completedSets = completedSetsCount(ex.sets);
+    return expected ? completedSets >= expected : completedSets > 0;
   }).length;
   const pct = exercises.length ? (completedCount / exercises.length) * 100 : 0;
 
@@ -109,7 +111,7 @@ function WorkoutSession() {
           </li>
         )}
         {exercises.map((ex) => {
-          const done = ex.sets.length;
+          const done = completedSetsCount(ex.sets);
           const expected = expectedSetsByExId.get(ex.exerciseId);
           const isDone = expected ? done >= expected : done > 0;
           return (
