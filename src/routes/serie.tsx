@@ -1,9 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Minus, Plus, Loader2, Trash2, ChevronDown, ChevronUp } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowLeft, Loader2, Plus, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { PlansAPI, SessionsAPI } from "@/lib/api";
+import { ExercisesAPI, PlansAPI, SessionsAPI, type WorkoutSessionSetResponse } from "@/lib/api";
 
 export const Route = createFileRoute("/serie")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -18,11 +18,6 @@ function SetLog() {
   const { sid, seid } = Route.useSearch();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const [kg, setKg] = useState(0);
-  const [reps, setReps] = useState(8);
-  const [rpe, setRpe] = useState<number | null>(null);
-  const [rest, setRest] = useState(90);
-  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const { data: session, isLoading } = useQuery({
     queryKey: ["session", sid],
@@ -31,6 +26,13 @@ function SetLog() {
   });
 
   const sessionEx = session?.sessionExercises.find((e) => e.id === seid);
+
+  const exercise = useQuery({
+    queryKey: ["exercise", sessionEx?.exerciseId],
+    queryFn: () => ExercisesAPI.get(sessionEx!.exerciseId),
+    enabled: !!sessionEx?.exerciseId,
+  });
+  const isBodyWeight = exercise.data?.usesBodyWeight ?? false;
 
   // Sets esperados (modo plano)
   const plans = useQuery({
@@ -43,89 +45,30 @@ function SetLog() {
     .find((d) => d.id === session?.workoutDayId);
   const expectedTotal = planDay?.exercises.find((e) => e.exerciseId === sessionEx?.exerciseId)?.sets;
 
-  const sortedSets = sessionEx?.sets.slice().sort((a, b) => a.setOrder - b.setOrder) ?? [];
-  const completedSets = sortedSets.filter((set) => set.isCompleted);
-  const pendingSets = sortedSets.filter((set) => !set.isCompleted);
-  const activeSet = pendingSets[0] ?? null;
-  const completedCount = completedSets.length;
+  const sortedSets = useMemo(
+    () => sessionEx?.sets.slice().sort((a, b) => a.setOrder - b.setOrder) ?? [],
+    [sessionEx?.sets],
+  );
+  const completedCount = sortedSets.filter((set) => set.isCompleted).length;
+  const currentSet = sortedSets.find((set) => !set.isCompleted) ?? null;
   const nextOrder = sortedSets.length + 1;
-  const totalDisplay = expectedTotal ?? Math.max(sortedSets.length, activeSet?.setOrder ?? nextOrder);
-  const displayOrder = activeSet?.setOrder ?? nextOrder;
+  const totalDisplay = Math.max(expectedTotal ?? 0, sortedSets.length, nextOrder);
 
-  // Pré-preencher com última série
   useEffect(() => {
-    const last = completedSets[completedSets.length - 1] ?? sortedSets[sortedSets.length - 1];
-    if (last) {
-      setKg(last.weight ?? 0);
-      setReps(last.reps ?? 8);
-      setRest(last.restTime ?? 90);
-      if (last.rpe != null) setRpe(last.rpe);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionEx?.id, completedCount]);
+    session?.warnings?.forEach((w) => toast.warning(w));
+  }, [session]);
 
   const addExtraSet = useMutation({
     mutationFn: () =>
       SessionsAPI.addSet(sid, seid, {
         setOrder: nextOrder,
-        reps,
-        weight: kg > 0 ? kg : undefined,
-        restTime: rest,
-        rpe: rpe ?? undefined,
+        reps: currentSet?.reps ?? sortedSets.at(-1)?.reps ?? 0,
+        restTime: currentSet?.restTime ?? sortedSets.at(-1)?.restTime ?? 90,
       }),
     onSuccess: () => {
       toast.success(`Série ${nextOrder} adicionada`);
       qc.invalidateQueries({ queryKey: ["session", sid] });
     },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const completeSet = useMutation({
-    mutationFn: async () => {
-      let setToComplete = activeSet;
-
-      if (!setToComplete && !session?.workoutDayId) {
-        const updatedSession = await SessionsAPI.addSet(sid, seid, {
-          setOrder: nextOrder,
-          reps,
-          weight: kg > 0 ? kg : undefined,
-          restTime: rest,
-          rpe: rpe ?? undefined,
-        });
-
-        const updatedExercise = updatedSession.sessionExercises.find((exercise) => exercise.id === seid);
-        setToComplete = updatedExercise?.sets
-          .slice()
-          .sort((a, b) => a.setOrder - b.setOrder)
-          .find((set) => !set.isCompleted && set.setOrder === nextOrder)
-          ?? updatedExercise?.sets.slice().sort((a, b) => a.setOrder - b.setOrder).at(-1)
-          ?? null;
-      }
-
-      if (!setToComplete) {
-        throw new Error("Todas as séries previstas já foram concluídas. Use + para adicionar uma série extra.");
-      }
-
-      const updatedSet = await SessionsAPI.updateSet(sid, setToComplete.id, {
-        setOrder: setToComplete.setOrder,
-        reps,
-        weight: kg > 0 ? kg : undefined,
-        restTime: rest,
-        rpe: rpe ?? undefined,
-      });
-
-      return SessionsAPI.finishSet(sid, updatedSet.id);
-    },
-    onSuccess: (set) => {
-      toast.success(`Série ${set.setOrder} concluída`);
-      qc.invalidateQueries({ queryKey: ["session", sid] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const removeSet = useMutation({
-    mutationFn: (setId: string) => SessionsAPI.removeSet(sid, seid, setId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["session", sid] }),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -138,9 +81,20 @@ function SetLog() {
     );
   }
 
-  if (isLoading || !sessionEx) {
+  if (isLoading || !sessionEx || exercise.isLoading) {
     return <div className="h-full flex items-center justify-center text-fg-muted"><Loader2 className="animate-spin" size={20} /></div>;
   }
+
+  const removeSet = (setId: string) => {
+    if (confirm("Remover esta série?")) {
+      void SessionsAPI.removeSet(sid, seid, setId)
+        .then(() => qc.invalidateQueries({ queryKey: ["session", sid] }))
+        .catch((e: Error) => toast.error(e.message));
+    }
+  };
+
+  const completedSets = sortedSets.filter((set) => set.isCompleted).length;
+  const progressPct = totalDisplay > 0 ? (completedSets / totalDisplay) * 100 : 0;
 
   return (
     <div className="h-full flex flex-col bg-surface text-fg anim-slide">
@@ -148,19 +102,21 @@ function SetLog() {
         <button onClick={() => navigate({ to: "/treino", search: { sid } })} className="btn-press">
           <ArrowLeft size={22} strokeWidth={1.6} />
         </button>
-        <p className="label-caps-lg text-[12px]">SÉRIE {displayOrder} DE {totalDisplay}</p>
+        <p className="label-caps-lg text-[12px]">SÉRIE {currentSet?.setOrder ?? nextOrder} DE {totalDisplay}</p>
         <span className="w-6" />
       </header>
 
       <div className="flex-1 overflow-y-auto olympus-scroll pb-5">
         <section className="px-5 mt-6">
           <h1 className="text-xl font-semibold">{sessionEx.exerciseName}</h1>
+          <p className="mt-1 text-xs text-fg-muted">
+            {completedSets}/{totalDisplay} séries concluídas
+          </p>
 
-          {/* Barra segmentada */}
           <div className="mt-4 flex gap-1 h-2">
             {Array.from({ length: totalDisplay }).map((_, i) => {
-              const done = i < completedCount;
-              const current = i === completedCount;
+              const done = i < completedSets;
+              const current = i === completedSets;
               return (
                 <div key={i}
                   className={`flex-1 rounded-full ${
@@ -171,61 +127,21 @@ function SetLog() {
           </div>
         </section>
 
-        <section className="px-5 mt-7 grid grid-cols-2 gap-3">
-          <Stepper label="CARGA" value={kg} unit="kg" step={2.5} onChange={setKg} allowTyping />
-          <Stepper label="REPETIÇÕES" value={reps} unit="reps" step={1} onChange={setReps} />
+        <section className="px-5 mt-7 space-y-3">
+          {sortedSets.map((set) => (
+            <SetCard
+              key={set.id}
+              sessionId={sid}
+              sessionExerciseId={seid}
+              set={set}
+              isBodyWeight={isBodyWeight}
+              canRegister={!exercise.isLoading}
+              onRemove={removeSet}
+            />
+          ))}
         </section>
 
-        <div className="px-5 mt-5">
-          <button
-            onClick={() => setShowAdvanced((v) => !v)}
-            className="label-caps text-fg-muted text-[10px] flex items-center gap-1"
-          >
-            {showAdvanced ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-            AVANÇADO (RPE / DESCANSO)
-          </button>
-        </div>
-
-        {showAdvanced && (
-          <>
-            <section className="px-5 mt-3">
-              <Stepper label="DESCANSO" value={rest} unit="s" step={15} onChange={setRest} />
-            </section>
-
-            <section className="px-5 mt-5">
-              <p className="label-caps text-fg-muted">RPE</p>
-              <div className="mt-2 flex items-end gap-3">
-                <InlineNumberInput
-                  value={rpe}
-                  onChange={(v) => setRpe(v)}
-                  min={0}
-                  max={10}
-                  step={1}
-                  placeholder="—"
-                />
-                <p className="text-xs text-fg-muted pb-1.5">Percepção de esforço</p>
-              </div>
-              <div className="mt-3 flex gap-1 h-3">
-                {Array.from({ length: 10 }).map((_, i) => {
-                  const active = rpe != null && i < rpe;
-                  return (
-                    <button key={i} onClick={() => setRpe(i + 1)}
-                      className={`flex-1 rounded-sm ${active ? "bg-gold" : "bg-card border border-gold/20"}`}
-                      aria-label={`RPE ${i + 1}`} />
-                  );
-                })}
-              </div>
-            </section>
-          </>
-        )}
-
         <div className="px-5 mt-7">
-          <button
-            onClick={() => completeSet.mutate()}
-            disabled={completeSet.isPending}
-            className="w-full rounded-lg bg-gold text-obsidian py-4 label-caps-lg text-[12px] btn-press shadow-gold disabled:opacity-60">
-            {completeSet.isPending ? "..." : "COMPLETAR SÉRIE"}
-          </button>
           <button
             onClick={() => addExtraSet.mutate()}
             disabled={addExtraSet.isPending}
@@ -249,7 +165,7 @@ function SetLog() {
                     <span className="tabular-nums">{s.weight ?? 0} kg</span>
                     <span className="text-right text-gold text-[11px]">RPE {s.rpe ?? "—"}</span>
                     <button
-                      onClick={() => confirm("Remover esta série?") && removeSet.mutate(s.id)}
+                      onClick={() => removeSet(s.id)}
                       className="text-fg-muted/60 hover:text-red-400 justify-self-end"
                       aria-label="Remover série"
                     >
@@ -266,140 +182,223 @@ function SetLog() {
   );
 }
 
-function Stepper({ label, value, unit, step, onChange }:
-  {
-    label: string;
-    value: number;
-    unit: string;
-    step: number;
-    onChange: (n: number) => void;
-    allowTyping?: boolean;
-  }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(String(value));
+function SetCard({
+  sessionId,
+  sessionExerciseId,
+  set,
+  isBodyWeight,
+  canRegister,
+  onRemove,
+}: {
+  sessionId: string;
+  sessionExerciseId: string;
+  set: WorkoutSessionSetResponse;
+  isBodyWeight: boolean;
+  canRegister: boolean;
+  onRemove: (setId: string) => void;
+}) {
+  const qc = useQueryClient();
+  const [repsDraft, setRepsDraft] = useState(String(set.reps ?? ""));
+  const [weightDraft, setWeightDraft] = useState(set.weight == null ? "" : String(set.weight));
+  const [rpeDraft, setRpeDraft] = useState(set.rpe == null ? "" : String(set.rpe));
 
   useEffect(() => {
-    if (!editing) setDraft(String(value));
-  }, [value, editing]);
+    setRepsDraft(String(set.reps ?? ""));
+    setWeightDraft(set.weight == null ? "" : String(set.weight));
+    setRpeDraft(set.rpe == null ? "" : String(set.rpe));
+  }, [set.id, set.isCompleted, set.reps, set.weight, set.rpe]);
 
-  const commitDraft = () => {
-    const parsed = Number(draft.replace(",", "."));
-    if (!Number.isFinite(parsed)) {
-      setDraft(String(value));
-      setEditing(false);
-      return;
-    }
-    onChange(Math.max(0, +parsed.toFixed(2)));
-    setEditing(false);
-  };
+  const register = useMutation({
+    mutationFn: async () => {
+      const repsValue = Number(repsDraft.replace(",", "."));
+      if (!Number.isFinite(repsValue) || repsValue <= 0) {
+        throw new Error("Informe um número válido de reps maior que zero.");
+      }
+
+      let weightValue: number | null = null;
+      if (!isBodyWeight) {
+        if (!weightDraft.trim()) {
+          throw new Error("Informe o peso da série.");
+        }
+        const parsedWeight = Number(weightDraft.replace(",", "."));
+        if (!Number.isFinite(parsedWeight) || parsedWeight < 0) {
+          throw new Error("Informe um peso válido.");
+        }
+        weightValue = parsedWeight;
+      }
+
+      if (!rpeDraft.trim()) {
+        throw new Error("Informe o RPE da série.");
+      }
+      const rpeValue = Number(rpeDraft.replace(",", "."));
+      if (!Number.isFinite(rpeValue) || rpeValue < 0 || rpeValue > 10) {
+        throw new Error("O RPE deve estar entre 0 e 10.");
+      }
+
+      const updatedSession = await SessionsAPI.updateSet(sessionId, set.id, {
+        setOrder: set.setOrder,
+        reps: Math.round(repsValue),
+        weight: isBodyWeight ? undefined : weightValue ?? undefined,
+        restTime: set.restTime ?? 0,
+        rpe: rpeValue,
+      });
+
+      const updatedSet = updatedSession.sessionExercises
+        .find((exercise) => exercise.id === sessionExerciseId)
+        ?.sets.find((candidate) => candidate.id === set.id);
+
+      if (!updatedSet) {
+        throw new Error("Não foi possível localizar a série atualizada.");
+      }
+
+      return SessionsAPI.finishSet(sessionId, updatedSet.id);
+    },
+    onSuccess: (finishedSet) => {
+      toast.success(`Série ${finishedSet.setOrder} registrada`);
+      qc.invalidateQueries({ queryKey: ["session", sessionId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   return (
-    <div>
-      <p className="label-caps text-fg-muted">{label}</p>
-      <div className="mt-2 card p-3 flex items-center gap-2">
-        <button onClick={() => onChange(Math.max(0, +(value - step).toFixed(2)))}
-          className="w-9 h-9 rounded-full bg-gold/10 border border-gold/30 text-gold flex items-center justify-center btn-press">
-          <Minus size={16} strokeWidth={2} />
-        </button>
-        <div className="flex-1 text-center">
-          {allowTyping && editing ? (
-            <input
-              autoFocus
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onBlur={commitDraft}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") commitDraft();
-                if (e.key === "Escape") {
-                  setDraft(String(value));
-                  setEditing(false);
-                }
-              }}
-              inputMode="decimal"
-              className="w-20 bg-transparent text-center text-2xl font-bold border-b border-gold/40 focus:outline-none"
-            />
-          ) : (
-            <button
-              type="button"
-              onClick={() => allowTyping && setEditing(true)}
-              className="text-2xl font-bold"
-            >
-              {value}
-            </button>
-          )}
-          <span className="text-xs text-fg-muted ml-1">{unit}</span>
+    <div className={`rounded-xl border p-4 ${set.isCompleted ? "bg-card border-divider" : "bg-card/70 border-gold/30"}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="label-caps text-gold text-[10px]">SÉRIE {set.setOrder}</p>
+          <h2 className="mt-1 text-sm font-semibold">
+            {set.isCompleted ? "Concluída" : "Pendente"}
+          </h2>
         </div>
-        <button onClick={() => onChange(+(value + step).toFixed(2))}
-          className="w-9 h-9 rounded-full bg-gold/10 border border-gold/30 text-gold flex items-center justify-center btn-press">
-          <Plus size={16} strokeWidth={2} />
+        <button
+          onClick={() => onRemove(set.id)}
+          className="text-fg-muted/60 hover:text-red-400 btn-press"
+          aria-label="Remover série"
+        >
+          <Trash2 size={13} />
         </button>
       </div>
+
+      {set.isCompleted ? (
+        <>
+          <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+            <MetaPill label="REPS" value={`${set.reps ?? "—"}`} />
+            <MetaPill label="PESO" value={`${set.weight ?? "—"} kg`} />
+            <MetaPill label="RPE" value={`${set.rpe ?? "—"}`} />
+            <MetaPill label="DESCANSO" value={`${set.restTime ?? "—"} s`} />
+          </div>
+
+          {!!set.musclesVolumes?.length && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {set.musclesVolumes.map((volume) => (
+                <span
+                  key={volume.muscleGroup}
+                  className="rounded-full border border-gold/25 bg-gold/5 px-2.5 py-1 text-[10px] text-gold"
+                >
+                  {volume.muscleGroup}: {Math.round(volume.totalVolume)}
+                </span>
+              ))}
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          <div className="mt-4 grid gap-3">
+            <FieldInput
+              label="REPS"
+              value={repsDraft}
+              onChange={setRepsDraft}
+              inputMode="numeric"
+              placeholder="10"
+              helperText="Editável antes de registrar"
+            />
+
+            <div className="rounded-lg border border-divider bg-card-2/60 px-3 py-2.5">
+              <p className="label-caps text-fg-muted text-[9px]">DESCANSO</p>
+              <p className="mt-1 text-sm">{set.restTime ?? 0}s</p>
+            </div>
+
+            {!isBodyWeight && (
+              <FieldInput
+                label="PESO"
+                value={weightDraft}
+                onChange={setWeightDraft}
+                inputMode="decimal"
+                placeholder="0"
+                helperText="Obrigatório para completar"
+              />
+            )}
+
+            {isBodyWeight && (
+              <div className="rounded-lg border border-divider bg-card-2/60 px-3 py-2.5">
+                <p className="label-caps text-fg-muted text-[9px]">PESO</p>
+                <p className="mt-1 text-xs text-fg-muted">Peso corporal será calculado automaticamente.</p>
+              </div>
+            )}
+
+            <FieldInput
+              label="RPE"
+              value={rpeDraft}
+              onChange={setRpeDraft}
+              inputMode="decimal"
+              placeholder="0 a 10"
+              helperText="Obrigatório para completar"
+            />
+          </div>
+
+          <button
+            onClick={() => register.mutate()}
+            disabled={register.isPending || !canRegister}
+            className="mt-4 w-full rounded-lg bg-gold text-obsidian py-3.5 label-caps-lg text-[12px] btn-press shadow-gold disabled:opacity-60"
+          >
+            {register.isPending ? "..." : "REGISTRAR SÉRIE"}
+          </button>
+
+          {!canRegister && (
+            <p className="mt-2 text-xs text-fg-muted">
+              Carregando dados do exercício...
+            </p>
+          ) : (
+          )}
+        </>
+      )}
     </div>
   );
 }
 
-function InlineNumberInput({
+function FieldInput({
+  label,
   value,
   onChange,
-  min,
-  max,
-  step,
+  inputMode,
   placeholder,
+  helperText,
 }: {
-  value: number | null;
-  onChange: (value: number | null) => void;
-  min: number;
-  max: number;
-  step: number;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  inputMode: React.HTMLAttributes<HTMLInputElement>["inputMode"];
   placeholder: string;
+  helperText?: string;
 }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(value == null ? "" : String(value));
-
-  useEffect(() => {
-    if (!editing) setDraft(value == null ? "" : String(value));
-  }, [value, editing]);
-
-  const commit = () => {
-    if (!draft.trim()) {
-      onChange(null);
-      setEditing(false);
-      return;
-    }
-    const parsed = Number(draft.replace(",", "."));
-    if (!Number.isFinite(parsed)) {
-      setDraft(value == null ? "" : String(value));
-      setEditing(false);
-      return;
-    }
-    const normalized = Math.max(min, Math.min(max, Math.round(parsed / step) * step));
-    onChange(normalized);
-    setEditing(false);
-  };
-
-  if (editing) {
-    return (
-      <input
-        autoFocus
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={commit}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") commit();
-          if (e.key === "Escape") {
-            setDraft(value == null ? "" : String(value));
-            setEditing(false);
-          }
-        }}
-        inputMode="decimal"
-        className="w-20 bg-transparent border-b border-gold/40 text-4xl font-bold leading-none focus:outline-none"
-      />
-    );
-  }
-
   return (
-    <button type="button" onClick={() => setEditing(true)} className="text-4xl font-bold leading-none">
-      {value ?? placeholder}
-    </button>
+    <label className="block rounded-lg border border-divider bg-card-2/60 px-3 py-2.5">
+      <span className="label-caps text-fg-muted text-[9px]">{label}</span>
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        inputMode={inputMode}
+        placeholder={placeholder}
+        className="mt-1 w-full bg-transparent text-sm focus:outline-none"
+      />
+      {helperText && <p className="mt-1 text-[11px] text-fg-muted">{helperText}</p>}
+    </label>
+          )}
+
+function MetaPill({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-divider bg-card-2/50 px-3 py-2">
+      <p className="label-caps text-fg-muted text-[9px]">{label}</p>
+      <p className="mt-1 text-sm font-medium">{value}</p>
+    </div>
   );
 }
