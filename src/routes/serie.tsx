@@ -59,18 +59,30 @@ function SetLog() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionEx?.id]);
 
-  const addSet = useMutation({
-    mutationFn: () =>
-      SessionsAPI.addSet(sid, seid, {
+  const saveSet = useMutation({
+    mutationFn: async () => {
+      const updatedSession = await SessionsAPI.addSet(sid, seid, {
         setOrder: nextOrder,
         reps,
         weight: kg > 0 ? kg : undefined,
         restTime: rest,
         rpe: rpe ?? undefined,
-      }),
-    onSuccess: (s) => {
-      s.warnings?.forEach((w) => toast.warning(w));
-      toast.success(`Série ${nextOrder} salva`);
+      });
+      const updatedExercise = updatedSession.sessionExercises.find((exercise) => exercise.id === seid);
+      const createdSet = updatedExercise?.sets
+        .slice()
+        .sort((a, b) => a.setOrder - b.setOrder)
+        .find((set) => set.setOrder === nextOrder)
+        ?? updatedExercise?.sets.slice().sort((a, b) => a.setOrder - b.setOrder).at(-1);
+
+      if (!createdSet) {
+        throw new Error("Não foi possível identificar a série salva.");
+      }
+
+      return SessionsAPI.finishSet(sid, createdSet.id);
+    },
+    onSuccess: (set) => {
+      toast.success(`Série ${set.setOrder} salva`);
       qc.invalidateQueries({ queryKey: ["session", sid] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -167,10 +179,10 @@ function SetLog() {
 
         <div className="px-5 mt-7">
           <button
-            onClick={() => addSet.mutate()}
-            disabled={addSet.isPending}
+            onClick={() => saveSet.mutate()}
+            disabled={saveSet.isPending}
             className="w-full rounded-lg bg-gold text-obsidian py-4 label-caps-lg text-[12px] btn-press shadow-gold disabled:opacity-60">
-            {addSet.isPending ? "..." : "SALVAR SÉRIE"}
+            {saveSet.isPending ? "..." : "SALVAR SÉRIE"}
           </button>
         </div>
 

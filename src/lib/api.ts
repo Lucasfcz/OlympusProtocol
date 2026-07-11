@@ -51,11 +51,12 @@ export type ExerciseResponse = {
   contraindications?: { id: string; condition: string; explanation: string }[];
 };
 
-export type SessionSet = {
+export type WorkoutSessionSetResponse = {
   id: string; sessionExerciseId: string; setOrder: number;
   reps: number; weight?: number | null; restTime?: number | null; rpe?: number | null;
   musclesVolumes?: { muscleGroup: MuscleGroup; totalVolume: number }[];
 };
+export type SessionSet = WorkoutSessionSetResponse;
 export type SessionExercise = {
   id: string; exerciseId: string; exerciseName: string; exerciseOrder: number;
   exerciseVolume: number;
@@ -275,9 +276,11 @@ export const SessionsAPI = {
   addSet: (sessionId: string, sessionExerciseId: string,
     d: { setOrder: number; reps: number; weight?: number; restTime: number; rpe?: number }) =>
     api.post<WorkoutSessionResponse>(`/api/sessions/${sessionId}/exercises/${sessionExerciseId}/sets`, d),
-  updateSet: (sessionId: string, sessionExerciseId: string, setId: string,
+  updateSet: (sessionId: string, setId: string,
     d: { setOrder: number; reps: number; weight: number; restTime: number; rpe: number }) =>
-    api.put<WorkoutSessionResponse>(`/api/sessions/${sessionId}/exercises/${sessionExerciseId}/sets/${setId}`, d),
+    api.put<WorkoutSessionSetResponse>(`/api/sessions/${sessionId}/exercises/sets/${setId}`, d),
+  finishSet: (sessionId: string, setId: string) =>
+    api.patch<WorkoutSessionSetResponse>(`/api/sessions/${sessionId}/sets/${setId}/finish`),
   removeSet: (sessionId: string, sessionExerciseId: string, setId: string) =>
     api.del(`/api/sessions/${sessionId}/exercises/${sessionExerciseId}/sets/${setId}`),
   reorderSets: (sessionId: string, sessionExerciseId: string, orders: { setId: string; order: number }[]) =>
